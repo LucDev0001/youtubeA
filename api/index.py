@@ -1,12 +1,20 @@
 import os
 import json
 import logging
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, session, redirect, url_for
 from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 app = Flask(__name__, template_folder="../templates")
+
+# IMPORTANTE: Defina uma chave secreta para assinar os cookies da sessão
+# Na Vercel, você deve definir isso nas Environment Variables como FLASK_SECRET_KEY
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "uma_chave_secreta_padrao_para_dev")
+
+# Permite HTTP para testes locais (OAuthlib reclama se não for HTTPS)
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 # Configuração de Logging
 logging.basicConfig(level=logging.INFO)
@@ -14,24 +22,68 @@ logger = logging.getLogger(__name__)
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
-def get_authenticated_service():
-    """
-    No Vercel, lemos o token da Variável de Ambiente 'GOOGLE_TOKEN_JSON'.
-    Isso evita ter que fazer login via navegador no servidor.
-    """
-    token_json = os.environ.get("GOOGLE_TOKEN_JSON")
-    
-    if not token_json:
-        logger.error("Variável de ambiente GOOGLE_TOKEN_JSON não encontrada.")
-        return None
+# Tenta carregar as credenciais do cliente (Client ID/Secret)
+# Na Vercel, coloque o conteúdo do client_secret.json na variável CLIENT_SECRETS_JSON
+CLIENT_SECRETS_JSON = os.environ.get("CLIENT_SECRETS_JSON")
+if not CLIENT_SECRETS_JSON and os.path.exists("client_secret.json"):
+    with open("client_secret.json", "r") as f:
+        CLIENT_SECRETS_JSON = f.read()
 
-    try:
-        info = json.loads(token_json)
-        creds = Credentials.from_authorized_user_info(info, SCOPES)
-        return build("youtube", "v3", credentials=creds)
-    except Exception as e:
-        logger.error(f"Erro na autenticação: {e}")
-        return None
+def credentials_to_dict(credentials):
+    return {
+        'token': credentials.token,
+        'refresh_token': credentials.refresh_token,
+        'token_uri': credentials.token_uri,
+        'client_id': credentials.client_id,
+        'client_secret': credentials.client_secret,
+        'scopes': credentials.scopes
+    }
+
+@app.route('/login')
+def login():
+    if not CLIENT_SECRETS_JSON:
+        return "Erro: CLIENT_SECRETS_JSON não configurado no servidor.", 500
+
+    client_config = json.loads(CLIENT_SECRETS_JSON)
+    
+    # Cria o fluxo OAuth
+    flow = Flow.from_client_config(
+        client_config,
+        scopes=SCOPES
+    )
+    # Define para onde o Google deve redirecionar após o login
+    flow.redirect_uri = url_for('oauth2callback', _external=True)
+    
+    authorization_url, state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true'
+    )
+    session['state'] = state
+    return redirect(authorization_url)
+
+@app.route('/oauth2callback')
+def oauth2callback():
+    state = session['state']
+    client_config = json.loads(CLIENT_SECRETS_JSON)
+    
+    flow = Flow.from_client_config(
+        client_config,
+        scopes=SCOPES,
+        state=state
+    )
+    flow.redirect_uri = url_for('oauth2callback', _external=True)
+    
+    # Troca o código de autorização por credenciais
+    flow.fetch_token(authorization_response=request.url)
+    
+    # Salva as credenciais na sessão do usuário
+    session['credentials'] = credentials_to_dict(flow.credentials)
+    return redirect(url_for('home'))
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('home'))
 
 def get_live_chat_id(youtube, video_id):
     try:
@@ -45,7 +97,8 @@ def get_live_chat_id(youtube, video_id):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    is_logged_in = 'credentials' in session
+    return render_template('index.html', logged_in=is_logged_in)
 
 @app.route('/send', methods=['POST'])
 def send_message():
@@ -56,9 +109,12 @@ def send_message():
     if not video_id or not message:
         return jsonify({"status": "error", "message": "Faltam dados."}), 400
 
-    youtube = get_authenticated_service()
-    if not youtube:
-        return jsonify({"status": "error", "message": "Erro de Autenticação no Servidor."}), 500
+    if 'credentials' not in session:
+        return jsonify({"status": "error", "message": "Usuário não logado."}), 401
+
+    # Reconstrói as credenciais a partir da sessão
+    creds = Credentials(**session['credentials'])
+    youtube = build("youtube", "v3", credentials=creds)
 
     try:
         if msg_type == 'live':

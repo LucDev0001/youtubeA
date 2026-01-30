@@ -60,6 +60,21 @@
       button:hover {
         background-color: #ff0000;
       }
+      .login-btn {
+        background-color: #4285f4;
+        margin-top: 1rem;
+      }
+      .login-btn:hover {
+        background-color: #357ae8;
+      }
+      .logout-link {
+        display: block;
+        text-align: center;
+        margin-top: 1rem;
+        color: #888;
+        text-decoration: none;
+        font-size: 0.8rem;
+      }
       .result {
         margin-top: 1rem;
         text-align: center;
@@ -81,6 +96,13 @@
   <body>
     <div class="container">
       <h2>YouTube Bot 🤖</h2>
+
+      {% if not logged_in %}
+      <div style="text-align: center">
+        <p>Faça login com sua conta Google para comentar.</p>
+        <a href="/login"><button class="login-btn">Login com Google</button></a>
+      </div>
+      {% else %}
       <form id="botForm">
         <label>ID do Vídeo / Live</label>
         <input
@@ -107,12 +129,14 @@
         <button type="submit" id="btnSubmit">Enviar</button>
       </form>
       <div id="result" class="result"></div>
+      <a href="/logout" class="logout-link">Sair da conta</a>
+      {% endif %}
     </div>
 
     <script>
       document
         .getElementById("botForm")
-        .addEventListener("submit", async function (e) {
+        ?.addEventListener("submit", async function (e) {
           e.preventDefault();
           const btn = document.getElementById("btnSubmit");
           const resultDiv = document.getElementById("result");
