@@ -252,11 +252,10 @@ def get_recent_videos():
                             pl_resp = youtube.playlistItems().list(
                                 part="snippet",
                                 playlistId=pid,
-                                maxResults=1
+                                maxResults=3
                             ).execute()
 
-                            if pl_resp.get("items"):
-                                vid_item = pl_resp["items"][0]
+                            for vid_item in pl_resp.get("items", []):
                                 videos.append({
                                     "id": vid_item["snippet"]["resourceId"]["videoId"],
                                     "title": vid_item["snippet"]["title"],
@@ -273,7 +272,7 @@ def get_recent_videos():
             try:
                 # Consulta detalhes para saber se é live
                 vid_resp = youtube.videos().list(
-                    part="snippet",
+                    part="snippet,liveStreamingDetails",
                     id=",".join(video_ids)
                 ).execute()
                 
@@ -288,6 +287,12 @@ def get_recent_videos():
                         if details['snippet'].get('liveBroadcastContent') == 'live':
                             is_live = True
                             v['type'] = 'LIVE 🔴'
+                            
+                            # Pega a contagem de espectadores se disponível
+                            if 'liveStreamingDetails' in details:
+                                viewers = details['liveStreamingDetails'].get('concurrentViewers')
+                                if viewers:
+                                    v['viewers'] = viewers
                     
                     if live_only and not is_live:
                         continue

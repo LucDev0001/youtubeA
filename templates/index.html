@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>YouTube Bot Controller</title>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/static/apple-touch-icon.png" />
     <style>
       body {
         font-family: "Segoe UI", sans-serif;
@@ -75,13 +77,22 @@
       .login-btn:hover {
         background-color: #357ae8;
       }
-      .logout-link {
-        display: block;
-        text-align: center;
-        margin-top: 1rem;
-        color: #888;
-        text-decoration: none;
-        font-size: 0.8rem;
+      .logout-y: block;
+      width: 100%;
+      padding: 10px;
+      background-color: #333;
+      color: #aaa;
+      border: 1px solid #444;
+      border-radius: 6px;
+      text-align: center;
+      margin-top: 1rem;
+      text-decoration: 0.9rem;
+      cursor: pointer;
+      box-sizing: b
+      .logout-btn:hover {
+        background-color: #b71c1c;
+        color: white;
+        border-color: #b71c1c;
       }
       .result {
         margin-top: 1rem;
@@ -191,6 +202,13 @@
         font-size: 0.75rem;
         color: #888;
         margin-top: 5px;
+      }
+      .viewers-count {
+        font-size: 0.75rem;
+        color: #ff5252;
+        display: block;
+        margin-top: 3px;
+        font-weight: bold;
       }
       .badge {
         font-size: 0.6rem;
@@ -460,10 +478,9 @@
             <button type="submit" id="btnSubmit">Enviar</button>
           </form>
           <div id="result" class="result"></div>
-          <a href="/logout" class="logout-link">Sair da conta</a>
+          <a href="/logout" class="logout-btn">🚪 Sair da Conta (Logout)</a>
         </div>
       </div>
-      <!-- Fim do main-layout -->
 
       <footer
         style="
@@ -585,6 +602,11 @@
             else loadMoreBtn.style.display = "none";
 
             data.videos.forEach((vid) => {
+              let viewersHtml = "";
+              if (vid.viewers) {
+                viewersHtml = `<span class="viewers-count">👥 ${vid.viewers} assistindo</span>`;
+              }
+
               const div = document.createElement("div");
               div.className = "video-card";
               div.onclick = function () {
@@ -599,6 +621,7 @@
                         <div class="video-card-content">
                         <p title="${vid.title}">${vid.title}</p>
                         <span class="channel-name">${vid.channel}</span>
+                        ${viewersHtml}
                         </div>
                         <button class="copy-btn" onclick="event.stopPropagation(); copyToClipboard('${vid.id}')" title="Copiar ID">📋</button>
                     `;
