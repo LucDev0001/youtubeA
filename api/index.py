@@ -69,7 +69,10 @@ def login():
 
 @app.route('/oauth2callback')
 def oauth2callback():
-    state = session['state']
+    state = session.get('state')
+    if not state:
+        return redirect(url_for('login'))
+
     client_config = json.loads(CLIENT_SECRETS_JSON)
     
     flow = Flow.from_client_config(
@@ -79,12 +82,16 @@ def oauth2callback():
     )
     flow.redirect_uri = url_for('oauth2callback', _external=True)
     
-    # Troca o código de autorização por credenciais
-    flow.fetch_token(authorization_response=request.url)
-    
-    # Salva as credenciais na sessão do usuário
-    session['credentials'] = credentials_to_dict(flow.credentials)
-    return redirect(url_for('home'))
+    try:
+        # Troca o código de autorização por credenciais
+        flow.fetch_token(authorization_response=request.url)
+        
+        # Salva as credenciais na sessão do usuário
+        session['credentials'] = credentials_to_dict(flow.credentials)
+        return redirect(url_for('home'))
+    except Exception as e:
+        logger.error(f"Erro no callback OAuth: {e}")
+        return f"Erro ao fazer login: {str(e)} <br><a href='/'>Tentar novamente</a>"
 
 @app.route('/logout')
 def logout():
@@ -317,6 +324,14 @@ def get_recent_videos():
 def home():
     is_logged_in = 'credentials' in session
     return render_template('index.html', logged_in=is_logged_in)
+
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
+@app.route('/terms')
+def terms():
+    return render_template('terms.html')
 
 @app.route('/send', methods=['POST'])
 def send_message():
