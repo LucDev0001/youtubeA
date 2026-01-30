@@ -30,6 +30,9 @@
         --logout-border: transparent;
         --primary-red: #cc0000;
         --primary-red-hover: #ff0000;
+        --sidebar-width: 240px;
+        --sidebar-bg: #0f0f0f;
+        --sidebar-hover: #272727;
       }
       [data-theme="light"] {
         --bg-color: #ffffff;
@@ -50,27 +53,29 @@
         --logout-border: transparent;
         --primary-red: #cc0000;
         --primary-red-hover: #ff0000;
+        --sidebar-bg: #ffffff;
+        --sidebar-hover: #f2f2f2;
       }
       body {
         font-family: "Roboto", Arial, sans-serif;
         background: var(--bg-color);
         color: var(--text-color);
         display: flex;
-        justify-content: center;
-        align-items: flex-start;
+        flex-direction: row;
         min-height: 100vh;
         margin: 0;
-        padding: 20px;
+        padding: 0;
         box-sizing: border-box;
+        overflow-x: hidden;
       }
       .container {
         background-color: var(--container-bg);
-        padding: 2rem;
+        padding: 2rem 2rem 4rem 2rem;
         border-radius: 0;
         box-shadow: none;
         width: 100%;
         max-width: 1200px;
-        margin-top: 20px;
+        margin: 0 auto;
         position: relative;
       }
       h2 {
@@ -384,14 +389,121 @@
       .theme-btn:hover {
         background: var(--card-hover);
       }
+      
+      /* Sidebar Styles */
+      .sidebar {
+        width: var(--sidebar-width);
+        background-color: var(--sidebar-bg);
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        padding-top: 60px;
+        border-right: 1px solid var(--border-color);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+      }
+      .sidebar.closed {
+        transform: translateX(-100%);
+      }
+      .sidebar-item {
+        padding: 12px 24px;
+        display: flex;
+        align-items: center;
+        color: var(--text-color);
+        text-decoration: none;
+        font-size: 0.95rem;
+        cursor: pointer;
+      }
+      .sidebar-item:hover {
+        background-color: var(--sidebar-hover);
+      }
+      .sidebar-item span {
+        margin-right: 15px;
+        font-size: 1.2rem;
+      }
+      
+      .main-content {
+        flex: 1;
+        margin-left: var(--sidebar-width);
+        transition: margin-left 0.3s ease;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding-top: 20px;
+      }
+      .main-content.expanded {
+        margin-left: 0;
+      }
+      
+      .menu-btn {
+        position: fixed;
+        top: 15px;
+        left: 20px;
+        z-index: 1100;
+        background: transparent;
+        border: none;
+        color: var(--text-color);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .menu-btn:hover {
+        background-color: var(--card-hover);
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          transform: translateX(-100%);
+        }
+        .sidebar.open {
+          transform: translateX(0);
+        }
+        .main-content {
+          margin-left: 0;
+        }
+      }
     </style>
   </head>
   <body>
+    <button id="menuToggle" class="menu-btn">☰</button>
+    
+    <aside id="sidebar" class="sidebar">
+      <div style="padding: 0 24px 20px 24px; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+        <span style="color: red;">▶</span> YouTube Bot
+      </div>
+      <a href="#" class="sidebar-item" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        <span>🏠</span> Início
+      </a>
+      <a href="#" class="sidebar-item" onclick="document.getElementById('recentVideos').scrollIntoView({behavior: 'smooth'})">
+        <span>📺</span> Inscrições
+      </a>
+      <a href="#" class="sidebar-item" onclick="document.getElementById('botForm').scrollIntoView({behavior: 'smooth'})">
+        <span>💬</span> Enviar Mensagem
+      </a>
+      {% if logged_in %}
+      <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 10px;">
+        <a href="/logout" class="sidebar-item">
+          <span>🚪</span> Sair
+        </a>
+      </div>
+      {% endif %}
+    </aside>
+
+    <main id="mainContent" class="main-content">
     <div class="container">
       <button id="themeToggle" class="theme-btn" title="Alternar Tema">
         ☀️
       </button>
-      <h2>Painel de Controle 🤖</h2>
+      <h2>Painel de Controle</h2>
 
       {% if not logged_in %}
       <div style="text-align: center">
@@ -673,6 +785,7 @@
       </footer>
       {% endif %}
     </div>
+    </main>
 
     <script>
       const themeToggle = document.getElementById("themeToggle");
@@ -693,6 +806,17 @@
       function updateIcon(theme) {
         themeToggle.innerText = theme === "dark" ? "☀️" : "🌙";
       }
+
+      // Sidebar Toggle Logic
+      const menuToggle = document.getElementById('menuToggle');
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('mainContent');
+
+      menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('closed'); // Desktop behavior
+        sidebar.classList.toggle('open');   // Mobile behavior
+        mainContent.classList.toggle('expanded');
+      });
 
       let isRunning = false;
 
@@ -965,6 +1089,41 @@
           console.error(e);
         }
       }
+
+      function selectChannelFilter(id, name) {
+        currentChannelFilter = id;
+        document.getElementById("listTitle").innerText = `Vídeos de: ${name}`;
+        document.getElementById("channelSearchResults").style.display = "none";
+        document.getElementById("clearFilterBtn").style.display =
+          "inline-block";
+        document.getElementById("channelSearchInput").value = "";
+        loadRecentVideos();
+      }
+
+      function clearFilter() {
+        currentChannelFilter = null;
+        document.getElementById("listTitle").innerText =
+          "Novidades das suas Inscrições";
+        document.getElementById("clearFilterBtn").style.display = "none";
+        document.getElementById("channelSearchResults").style.display = "none";
+        loadRecentVideos();
+      }
+
+      function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+          const resultDiv = document.getElementById("result");
+          resultDiv.innerText = "ID copiado: " + text;
+          resultDiv.className = "result success";
+          resultDiv.style.display = "block";
+          setTimeout(() => (resultDiv.style.display = "none"), 2000);
+        });
+      }
+
+      // Carrega a lista assim que a página abrir (se estiver logado)
+      loadRecentVideos();
+    </script>
+  </body>
+</html>
 
       function selectChannelFilter(id, name) {
         currentChannelFilter = id;
