@@ -99,6 +99,43 @@ def get_live_chat_id(youtube, video_id):
     except HttpError:
         return None
 
+@app.route('/get_video_info', methods=['POST'])
+def get_video_info():
+    if 'credentials' not in session:
+        return jsonify({"status": "error", "message": "Faça login primeiro."}), 401
+    
+    data = request.get_json()
+    video_id = data.get('video_id')
+    
+    if not video_id:
+        return jsonify({"status": "error", "message": "ID inválido."}), 400
+
+    creds = Credentials(**session['credentials'])
+    youtube = build("youtube", "v3", credentials=creds)
+
+    try:
+        response = youtube.videos().list(
+            part="snippet,liveStreamingDetails",
+            id=video_id
+        ).execute()
+
+        items = response.get("items", [])
+        if not items:
+            return jsonify({"status": "error", "message": "Vídeo não encontrado."}), 404
+
+        snippet = items[0]["snippet"]
+        live_details = items[0].get("liveStreamingDetails", {})
+        
+        return jsonify({
+            "status": "success",
+            "title": snippet["title"],
+            "channel": snippet["channelTitle"],
+            "thumbnail": snippet["thumbnails"]["medium"]["url"],
+            "is_live": bool(live_details.get("activeLiveChatId"))
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/')
 def home():
     is_logged_in = 'credentials' in session

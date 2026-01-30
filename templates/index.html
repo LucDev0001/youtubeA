@@ -91,6 +91,29 @@
         background-color: #b71c1c;
         color: #ffcdd2;
       }
+      .video-preview {
+        display: none;
+        margin-bottom: 1rem;
+        background: #2c2c2c;
+        padding: 10px;
+        border-radius: 6px;
+        text-align: center;
+      }
+      .video-preview img {
+        max-width: 100%;
+        border-radius: 4px;
+        margin-bottom: 5px;
+      }
+      .video-preview h4 {
+        margin: 5px 0;
+        color: #fff;
+        font-size: 0.95rem;
+      }
+      .video-preview p {
+        margin: 0;
+        color: #aaa;
+        font-size: 0.8rem;
+      }
     </style>
   </head>
   <body>
@@ -103,19 +126,86 @@
         <a href="/login"><button class="login-btn">Login com Google</button></a>
       </div>
       {% else %}
+
+      <details
+        style="
+          margin-bottom: 1.5rem;
+          background: #252525;
+          padding: 10px;
+          border-radius: 6px;
+          border: 1px solid #333;
+        "
+      >
+        <summary style="cursor: pointer; font-weight: bold; color: #ccc">
+          ❓ Dicas de Uso (Clique para abrir)
+        </summary>
+        <ul
+          style="
+            text-align: left;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #aaa;
+            padding-left: 20px;
+          "
+        >
+          <li>
+            <strong>ID do Vídeo:</strong> É o código no final do link. Ex:
+            youtube.com/watch?v=<b>dQw4w9WgXcQ</b>
+          </li>
+          <li>
+            <strong>Lives:</strong> O bot detecta automaticamente se é Live ou
+            Vídeo ao buscar o ID.
+          </li>
+          <li>
+            <strong>Templates:</strong> Use as mensagens prontas abaixo para
+            agilizar.
+          </li>
+        </ul>
+      </details>
+
       <form id="botForm">
         <label>ID do Vídeo / Live</label>
         <input
           type="text"
           name="video_id"
+          id="video_id"
           placeholder="Ex: dQw4w9WgXcQ"
           required
         />
+
+        <div id="videoPreview" class="video-preview">
+          <img id="thumb" src="" alt="Thumbnail" />
+          <h4 id="vidTitle">Titulo do Vídeo</h4>
+          <p id="vidChannel">Canal</p>
+        </div>
 
         <label>Tipo de Envio</label>
         <select name="type">
           <option value="live">Chat ao Vivo (Live)</option>
           <option value="comment">Comentário em Vídeo</option>
+        </select>
+
+        <label>Mensagens Rápidas (Templates)</label>
+        <select
+          id="msgTemplate"
+          onchange="
+            if (this.value)
+              document.getElementsByName('message')[0].value = this.value;
+          "
+        >
+          <option value="">-- Selecione ou Digite --</option>
+          <option value="Ótimo conteúdo! Parabéns pelo vídeo. 👏">
+            Elogio Padrão
+          </option>
+          <option value="Salve! Acompanhando a live aqui. 🚀">
+            Live - Salve
+          </option>
+          <option value="Muito bom! Obrigado por compartilhar.">
+            Agradecimento
+          </option>
+          <option value="Qual o link mencionado no vídeo?">
+            Pergunta Link
+          </option>
         </select>
 
         <label>Mensagem</label>
@@ -130,6 +220,25 @@
       </form>
       <div id="result" class="result"></div>
       <a href="/logout" class="logout-link">Sair da conta</a>
+
+      <footer
+        style="
+          margin-top: 2rem;
+          text-align: center;
+          font-size: 0.75rem;
+          color: #555;
+          border-top: 1px solid #333;
+          padding-top: 1rem;
+        "
+      >
+        Desenvolvido por
+        <a
+          href="https://lucianossantoswebdev.vercel.app/"
+          target="_blank"
+          style="color: #cc0000; text-decoration: none; font-weight: bold"
+          >Santos Codes</a
+        >
+      </footer>
       {% endif %}
     </div>
 
@@ -137,6 +246,7 @@
       document
         .getElementById("botForm")
         ?.addEventListener("submit", async function (e) {
+          // ... (código de envio existente) ...
           e.preventDefault();
           const btn = document.getElementById("btnSubmit");
           const resultDiv = document.getElementById("result");
@@ -166,6 +276,37 @@
           btn.disabled = false;
           btn.innerText = "Enviar";
         });
+
+      // Função para buscar dados do vídeo quando o usuário sai do campo ID
+      const idInput = document.getElementById("video_id");
+      const previewDiv = document.getElementById("videoPreview");
+
+      if (idInput) {
+        idInput.addEventListener("blur", async function () {
+          const val = this.value.trim();
+          if (val.length < 5) return;
+
+          try {
+            const res = await fetch("/get_video_info", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ video_id: val }),
+            });
+            const data = await res.json();
+
+            if (data.status === "success") {
+              document.getElementById("thumb").src = data.thumbnail;
+              document.getElementById("vidTitle").innerText = data.title;
+              document.getElementById("vidChannel").innerText = data.channel;
+              previewDiv.style.display = "block";
+            } else {
+              previewDiv.style.display = "none";
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        });
+      }
     </script>
   </body>
 </html>
