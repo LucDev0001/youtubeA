@@ -224,6 +224,10 @@
         background: #b71c1c;
         color: white;
       }
+      .badge-upcoming {
+        background: #e65100;
+        color: white;
+      }
       .badge-video {
         background: #00695c;
         color: white;
@@ -593,19 +597,24 @@
           const res = await fetch(url);
           const data = await res.json();
 
+          currentNextPageToken = data.nextPageToken;
+          // Mostra o botão se tiver próxima página, independente se vieram vídeos ou não
+          if (currentNextPageToken) loadMoreBtn.style.display = "inline-block";
+          else loadMoreBtn.style.display = "none";
+
           if (data.status === "success" && data.videos.length > 0) {
             if (!append) container.innerHTML = "";
-
-            currentNextPageToken = data.nextPageToken;
-            if (currentNextPageToken)
-              loadMoreBtn.style.display = "inline-block";
-            else loadMoreBtn.style.display = "none";
 
             data.videos.forEach((vid) => {
               let viewersHtml = "";
               if (vid.viewers) {
                 viewersHtml = `<span class="viewers-count">👥 ${vid.viewers} assistindo</span>`;
               }
+
+              let badgeClass = "badge-video";
+              if (vid.type.includes("LIVE")) badgeClass = "badge-live";
+              else if (vid.type.includes("BREVE"))
+                badgeClass = "badge-upcoming";
 
               const div = document.createElement("div");
               div.className = "video-card";
@@ -617,7 +626,7 @@
               };
               div.innerHTML = `
                         <img src="${vid.thumbnail}" alt="Thumb">
-                        <div><span class="badge ${vid.type.includes("LIVE") ? "badge-live" : "badge-video"}">${vid.type}</span></div>
+                        <div><span class="badge ${badgeClass}">${vid.type}</span></div>
                         <div class="video-card-content">
                         <p title="${vid.title}">${vid.title}</p>
                         <span class="channel-name">${vid.channel}</span>
@@ -628,9 +637,13 @@
               container.appendChild(div);
             });
           } else if (!append) {
-            container.innerHTML =
-              '<p style="font-size: 0.8rem; color: #888;">Nenhum vídeo recente encontrado.</p>';
-            loadMoreBtn.style.display = "none";
+            if (liveFilterActive) {
+              container.innerHTML =
+                '<p style="font-size: 0.8rem; color: #888;">Nenhuma live nesta página. Tente "Carregar Mais".</p>';
+            } else {
+              container.innerHTML =
+                '<p style="font-size: 0.8rem; color: #888;">Nenhum vídeo recente encontrado.</p>';
+            }
           }
         } catch (e) {
           console.error(e);

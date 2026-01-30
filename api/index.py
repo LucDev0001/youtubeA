@@ -287,7 +287,11 @@ def get_recent_videos():
                         if details['snippet'].get('liveBroadcastContent') == 'live':
                             is_live = True
                             v['type'] = 'LIVE 🔴'
+                        elif details['snippet'].get('liveBroadcastContent') == 'upcoming':
+                            is_live = True
+                            v['type'] = 'EM BREVE 🕒'
                             
+                        if is_live:
                             # Pega a contagem de espectadores se disponível
                             if 'liveStreamingDetails' in details:
                                 viewers = details['liveStreamingDetails'].get('concurrentViewers')
