@@ -147,46 +147,57 @@ def get_recent_videos():
     try:
         videos = []
 
-        # 1. Buscar Lives Ativas (se houver)
-        try:
-            live_resp = youtube.liveBroadcasts().list(
-                part="snippet",
-                broadcastStatus="active",
-                mine=True,
-                maxResults=3
-            ).execute()
-            for item in live_resp.get("items", []):
-                videos.append({
-                    "id": item["id"],
-                    "title": item["snippet"]["title"],
-                    "thumbnail": item["snippet"]["thumbnails"]["medium"]["url"],
-                    "type": "LIVE 🔴"
-                })
-        except Exception as e:
-            logger.warning(f"Erro ao buscar lives: {e}")
+        # 1. Buscar Inscrições (Canais que o usuário segue)
+        subs_resp = youtube.subscriptions().list(
+            part="snippet",
+            mine=True,
+            maxResults=6,  # Limite de 6 para não estourar tempo de resposta
+            order="relevance"
+        ).execute()
 
-        # 2. Buscar Vídeos Recentes (Uploads)
-        # Primeiro pegamos o ID da playlist de uploads do canal
-        channels_resp = youtube.channels().list(part="contentDetails", mine=True).execute()
-        if channels_resp.get("items"):
-            uploads_playlist_id = channels_resp["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
-            
-            playlist_resp = youtube.playlistItems().list(
-                part="snippet",
-                playlistId=uploads_playlist_id,
-                maxResults=10
-            ).execute()
+        sub_channels = []
+        for item in subs_resp.get("items", []):
+            sub_channels.append({
+                "id": item["snippet"]["resourceId"]["channelId"],
+                "title": item["snippet"]["title"]
+            })
 
-            for item in playlist_resp.get("items", []):
-                vid_id = item["snippet"]["resourceId"]["videoId"]
-                # Evita duplicar se a live também estiver na lista de uploads
-                if not any(v['id'] == vid_id for v in videos):
-                    videos.append({
-                        "id": vid_id,
-                        "title": item["snippet"]["title"],
-                        "thumbnail": item["snippet"]["thumbnails"]["medium"]["url"],
-                        "type": "VÍDEO"
-                    })
+        if not sub_channels:
+            return jsonify({"status": "success", "videos": []})
+
+        # 2. Buscar ID da playlist de Uploads desses canais
+        channel_ids = [ch["id"] for ch in sub_channels]
+        channels_resp = youtube.channels().list(
+            part="contentDetails",
+            id=",".join(channel_ids)
+        ).execute()
+
+        uploads_map = {}
+        for item in channels_resp.get("items", []):
+            uploads_map[item["id"]] = item["contentDetails"]["relatedPlaylists"]["uploads"]
+
+        # 3. Buscar o vídeo mais recente de cada canal
+        for ch in sub_channels:
+            pid = uploads_map.get(ch["id"])
+            if pid:
+                try:
+                    pl_resp = youtube.playlistItems().list(
+                        part="snippet",
+                        playlistId=pid,
+                        maxResults=1
+                    ).execute()
+
+                    if pl_resp.get("items"):
+                        vid_item = pl_resp["items"][0]
+                        videos.append({
+                            "id": vid_item["snippet"]["resourceId"]["videoId"],
+                            "title": vid_item["snippet"]["title"],
+                            "channel": ch["title"],
+                            "thumbnail": vid_item["snippet"]["thumbnails"]["medium"]["url"],
+                            "type": "NOVO"
+                        })
+                except Exception:
+                    continue
 
         return jsonify({"status": "success", "videos": videos})
 
