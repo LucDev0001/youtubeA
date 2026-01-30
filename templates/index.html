@@ -349,7 +349,12 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, transparent, var(--shimmer-color), transparent);
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--shimmer-color),
+          transparent
+        );
         animation: shimmer 1.5s infinite;
       }
       /* Estilos da Automação */
@@ -386,8 +391,12 @@
         }
       }
       @keyframes shimmer {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(100%); }
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
       }
 
       /* Layout Responsivo */
@@ -429,7 +438,7 @@
       .theme-btn:hover {
         background: var(--card-hover);
       }
-      
+
       /* Sidebar Styles */
       .sidebar {
         width: var(--sidebar-width);
@@ -464,7 +473,7 @@
         margin-right: 15px;
         font-size: 1.2rem;
       }
-      
+
       .main-content {
         flex: 1;
         margin-left: var(--sidebar-width);
@@ -477,7 +486,7 @@
       .main-content.expanded {
         margin-left: 0;
       }
-      
+
       .menu-btn {
         position: fixed;
         top: 15px;
@@ -515,316 +524,351 @@
   </head>
   <body>
     <button id="menuToggle" class="menu-btn">☰</button>
-    
+
     <aside id="sidebar" class="sidebar">
-      <div style="padding: 0 24px 20px 24px; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
-        <span style="color: red;">▶</span> YouTube Bot
+      <div
+        style="
+          padding: 0 24px 20px 24px;
+          font-weight: bold;
+          font-size: 1.2rem;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        "
+      >
+        <span style="color: red">▶</span> YouTube Bot
       </div>
-      <a href="#" class="sidebar-item" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+      <a
+        href="#"
+        class="sidebar-item"
+        onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
+      >
         <span>🏠</span> Início
       </a>
-      <a href="#" class="sidebar-item" onclick="document.getElementById('recentVideos').scrollIntoView({behavior: 'smooth'})">
+      <a
+        href="#"
+        class="sidebar-item"
+        onclick="
+          document
+            .getElementById('recentVideos')
+            .scrollIntoView({ behavior: 'smooth' })
+        "
+      >
         <span>📺</span> Inscrições
       </a>
-      <a href="#" class="sidebar-item" onclick="document.getElementById('botForm').scrollIntoView({behavior: 'smooth'})">
+      <a
+        href="#"
+        class="sidebar-item"
+        onclick="
+          document
+            .getElementById('botForm')
+            .scrollIntoView({ behavior: 'smooth' })
+        "
+      >
         <span>💬</span> Enviar Mensagem
       </a>
       {% if logged_in %}
-      <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 10px;">
-        <a href="/logout" class="sidebar-item">
-          <span>🚪</span> Sair
-        </a>
+      <div
+        style="
+          margin-top: auto;
+          border-top: 1px solid var(--border-color);
+          padding-top: 10px;
+        "
+      >
+        <a href="/logout" class="sidebar-item"> <span>🚪</span> Sair </a>
       </div>
       {% endif %}
     </aside>
 
     <main id="mainContent" class="main-content">
-    <div class="container">
-      <button id="themeToggle" class="theme-btn" title="Alternar Tema">
-        ☀️
-      </button>
-      <h2>Painel de Controle</h2>
+      <div class="container">
+        <button id="themeToggle" class="theme-btn" title="Alternar Tema">
+          ☀️
+        </button>
+        <h2>Painel de Controle</h2>
 
-      {% if not logged_in %}
-      <div style="text-align: center">
-        <p>Faça login com sua conta Google para comentar.</p>
-        <a href="/login"><button class="login-btn">Login com Google</button></a>
-      </div>
-      {% else %}
-
-      <div class="main-layout">
-        <!-- Coluna da Esquerda: Vídeos -->
-        <div>
-          <details
-            style="
-              margin-bottom: 1.5rem;
-              background: var(--details-bg);
-              padding: 10px;
-              border-radius: 12px;
-              border: 1px solid var(--border-color);
-            "
+        {% if not logged_in %}
+        <div style="text-align: center">
+          <p>Faça login com sua conta Google para comentar.</p>
+          <a href="/login"
+            ><button class="login-btn">Login com Google</button></a
           >
-            <summary style="cursor: pointer; font-weight: bold; color: #ccc">
-              ❓ Dicas de Uso (Clique para abrir)
-            </summary>
-            <ul
+        </div>
+        {% else %}
+
+        <div class="main-layout">
+          <!-- Coluna da Esquerda: Vídeos -->
+          <div>
+            <details
               style="
-                text-align: left;
-                margin-top: 10px;
-                font-size: 0.85rem;
-                color: var(--text-muted);
-                padding-left: 20px;
+                margin-bottom: 1.5rem;
+                background: var(--details-bg);
+                padding: 10px;
+                border-radius: 12px;
+                border: 1px solid var(--border-color);
               "
             >
-              <li>
-                <strong>ID do Vídeo:</strong> É o código no final do link. Ex:
-                youtube.com/watch?v=<b>dQw4w9WgXcQ</b>
-              </li>
-              <li>
-                <strong>Lives:</strong> O bot detecta automaticamente se é Live
-                ou Vídeo ao buscar o ID.
-              </li>
-              <li>
-                <strong>Templates:</strong> Use as mensagens prontas abaixo para
-                agilizar.
-              </li>
-            </ul>
-          </details>
+              <summary style="cursor: pointer; font-weight: bold; color: #ccc">
+                ❓ Dicas de Uso (Clique para abrir)
+              </summary>
+              <ul
+                style="
+                  text-align: left;
+                  margin-top: 10px;
+                  font-size: 0.85rem;
+                  color: var(--text-muted);
+                  padding-left: 20px;
+                "
+              >
+                <li>
+                  <strong>ID do Vídeo:</strong> É o código no final do link. Ex:
+                  youtube.com/watch?v=<b>dQw4w9WgXcQ</b>
+                </li>
+                <li>
+                  <strong>Lives:</strong> O bot detecta automaticamente se é
+                  Live ou Vídeo ao buscar o ID.
+                </li>
+                <li>
+                  <strong>Templates:</strong> Use as mensagens prontas abaixo
+                  para agilizar.
+                </li>
+              </ul>
+            </details>
 
-          <div class="video-list-container">
-            <div class="video-list-title">
-              <span id="listTitle">Novidades das suas Inscrições</span>
-              <div class="search-box">
+            <div class="video-list-container">
+              <div class="video-list-title">
+                <span id="listTitle">Novidades das suas Inscrições</span>
+                <div class="search-box">
+                  <button
+                    onclick="loadRecentVideos()"
+                    title="Atualizar Lista"
+                    style="
+                      width: auto;
+                      padding: 5px 10px;
+                      margin-bottom: 0;
+                      background: var(--logout-bg);
+                      margin-right: 5px;
+                    "
+                  >
+                    🔄
+                  </button>
+                  <button
+                    id="liveFilterBtn"
+                    onclick="toggleLiveFilter()"
+                    title="Apenas Lives"
+                    style="
+                      width: auto;
+                      padding: 5px 10px;
+                      margin-bottom: 0;
+                      background: var(--logout-bg);
+                      margin-right: 5px;
+                    "
+                  >
+                    🔴
+                  </button>
+                  <input
+                    type="text"
+                    id="channelSearchInput"
+                    placeholder="Pesquisar canal..."
+                    onkeypress="if (event.key === 'Enter') searchChannels();"
+                  />
+                  <button
+                    onclick="searchChannels()"
+                    style="width: auto; padding: 5px 10px; margin-bottom: 0"
+                  >
+                    🔍
+                  </button>
+                  <button
+                    id="clearFilterBtn"
+                    onclick="clearFilter()"
+                    style="
+                      width: auto;
+                      padding: 5px 10px;
+                      margin-bottom: 0;
+                      background: #555;
+                      display: none;
+                    "
+                  >
+                    ❌
+                  </button>
+                </div>
+              </div>
+
+              <div
+                id="channelSearchResults"
+                style="
+                  display: none;
+                  margin-bottom: 15px;
+                  gap: 10px;
+                  overflow-x: auto;
+                  padding-bottom: 5px;
+                "
+              >
+                <!-- Resultados da pesquisa de canais aparecem aqui -->
+              </div>
+              <div id="recentVideos" class="video-list">
+                <p style="font-size: 0.8rem; color: #666">Carregando...</p>
+              </div>
+              <div style="text-align: center; margin-top: 15px">
                 <button
-                  onclick="loadRecentVideos()"
-                  title="Atualizar Lista"
+                  id="loadMoreBtn"
+                  onclick="loadMore()"
                   style="
                     width: auto;
-                    padding: 5px 10px;
-                    margin-bottom: 0;
+                    padding: 8px 20px;
                     background: var(--logout-bg);
-                    margin-right: 5px;
-                  "
-                >
-                  🔄
-                </button>
-                <button
-                  id="liveFilterBtn"
-                  onclick="toggleLiveFilter()"
-                  title="Apenas Lives"
-                  style="
-                    width: auto;
-                    padding: 5px 10px;
-                    margin-bottom: 0;
-                    background: var(--logout-bg);
-                    margin-right: 5px;
-                  "
-                >
-                  🔴
-                </button>
-                <input
-                  type="text"
-                  id="channelSearchInput"
-                  placeholder="Pesquisar canal..."
-                  onkeypress="if (event.key === 'Enter') searchChannels();"
-                />
-                <button
-                  onclick="searchChannels()"
-                  style="width: auto; padding: 5px 10px; margin-bottom: 0"
-                >
-                  🔍
-                </button>
-                <button
-                  id="clearFilterBtn"
-                  onclick="clearFilter()"
-                  style="
-                    width: auto;
-                    padding: 5px 10px;
-                    margin-bottom: 0;
-                    background: #555;
                     display: none;
                   "
                 >
-                  ❌
+                  Carregar Mais
                 </button>
               </div>
             </div>
+          </div>
 
-            <div
-              id="channelSearchResults"
-              style="
-                display: none;
-                margin-bottom: 15px;
-                gap: 10px;
-                overflow-x: auto;
-                padding-bottom: 5px;
-              "
-            >
-              <!-- Resultados da pesquisa de canais aparecem aqui -->
-            </div>
-            <div id="recentVideos" class="video-list">
-              <p style="font-size: 0.8rem; color: #666">Carregando...</p>
-            </div>
-            <div style="text-align: center; margin-top: 15px">
-              <button
-                id="loadMoreBtn"
-                onclick="loadMore()"
-                style="
-                  width: auto;
-                  padding: 8px 20px;
-                  background: var(--logout-bg);
-                  display: none;
+          <!-- Coluna da Direita: Formulário -->
+          <div class="form-section">
+            <form id="botForm">
+              <label>ID do Vídeo / Live</label>
+              <input
+                type="text"
+                name="video_id"
+                id="video_id"
+                placeholder="Ex: dQw4w9WgXcQ"
+                required
+              />
+
+              <div id="videoPreview" class="video-preview">
+                <img id="thumb" src="" alt="Thumbnail" />
+                <h4 id="vidTitle">Titulo do Vídeo</h4>
+                <p id="vidChannel">Canal</p>
+              </div>
+
+              <label>Tipo de Envio</label>
+              <select name="type">
+                <option value="live">Chat ao Vivo (Live)</option>
+                <option value="comment">Comentário em Vídeo</option>
+              </select>
+
+              <label>Mensagens Rápidas (Templates)</label>
+              <select
+                id="msgTemplate"
+                onchange="
+                  if (this.value)
+                    document.getElementsByName('message')[0].value = this.value;
                 "
               >
-                Carregar Mais
-              </button>
-            </div>
+                <option value="">-- Selecione ou Digite --</option>
+                <option value="Ótimo conteúdo! Parabéns pelo vídeo. 👏">
+                  Elogio Padrão
+                </option>
+                <option value="Salve! Acompanhando a live aqui. 🚀">
+                  Live - Salve
+                </option>
+                <option value="Muito bom! Obrigado por compartilhar.">
+                  Agradecimento
+                </option>
+                <option value="Qual o link mencionado no vídeo?">
+                  Pergunta Link
+                </option>
+              </select>
+
+              <label>Mensagem</label>
+              <textarea
+                name="message"
+                rows="3"
+                placeholder="Digite sua mensagem..."
+                required
+              ></textarea>
+
+              <!-- Opções de Automação -->
+              <div class="auto-options">
+                <label class="auto-header">
+                  <input
+                    type="checkbox"
+                    id="autoMode"
+                    style="width: auto; margin-right: 10px; margin-bottom: 0"
+                  />
+                  <span style="font-size: 0.9rem"
+                    >🔄 Ativar Repetição Automática</span
+                  >
+                </label>
+                <div id="autoOptions" class="auto-details">
+                  <div style="display: flex; gap: 10px">
+                    <div style="flex: 1">
+                      <label
+                        style="
+                          font-size: 0.8rem;
+                          margin-bottom: 5px;
+                          color: var(--text-muted);
+                        "
+                        >Qtd. Vezes</label
+                      >
+                      <input
+                        type="number"
+                        id="repeatCount"
+                        value="5"
+                        min="2"
+                        max="100"
+                        style="margin-bottom: 0"
+                      />
+                    </div>
+                    <div style="flex: 1">
+                      <label
+                        style="
+                          font-size: 0.8rem;
+                          margin-bottom: 5px;
+                          color: var(--text-muted);
+                        "
+                        >Intervalo (segundos)</label
+                      >
+                      <input
+                        type="number"
+                        id="repeatInterval"
+                        value="60"
+                        min="5"
+                        style="margin-bottom: 0"
+                      />
+                    </div>
+                  </div>
+                  <p class="warning-text">
+                    ⚠️ Intervalos muito curtos podem causar bloqueio temporário
+                    pelo YouTube.
+                  </p>
+                </div>
+              </div>
+
+              <button type="submit" id="btnSubmit">Enviar</button>
+            </form>
+            <div id="result" class="result"></div>
+            <a href="/logout" class="logout-btn">🚪 Sair da Conta (Logout)</a>
           </div>
         </div>
 
-        <!-- Coluna da Direita: Formulário -->
-        <div class="form-section">
-          <form id="botForm">
-            <label>ID do Vídeo / Live</label>
-            <input
-              type="text"
-              name="video_id"
-              id="video_id"
-              placeholder="Ex: dQw4w9WgXcQ"
-              required
-            />
-
-            <div id="videoPreview" class="video-preview">
-              <img id="thumb" src="" alt="Thumbnail" />
-              <h4 id="vidTitle">Titulo do Vídeo</h4>
-              <p id="vidChannel">Canal</p>
-            </div>
-
-            <label>Tipo de Envio</label>
-            <select name="type">
-              <option value="live">Chat ao Vivo (Live)</option>
-              <option value="comment">Comentário em Vídeo</option>
-            </select>
-
-            <label>Mensagens Rápidas (Templates)</label>
-            <select
-              id="msgTemplate"
-              onchange="
-                if (this.value)
-                  document.getElementsByName('message')[0].value = this.value;
-              "
-            >
-              <option value="">-- Selecione ou Digite --</option>
-              <option value="Ótimo conteúdo! Parabéns pelo vídeo. 👏">
-                Elogio Padrão
-              </option>
-              <option value="Salve! Acompanhando a live aqui. 🚀">
-                Live - Salve
-              </option>
-              <option value="Muito bom! Obrigado por compartilhar.">
-                Agradecimento
-              </option>
-              <option value="Qual o link mencionado no vídeo?">
-                Pergunta Link
-              </option>
-            </select>
-
-            <label>Mensagem</label>
-            <textarea
-              name="message"
-              rows="3"
-              placeholder="Digite sua mensagem..."
-              required
-            ></textarea>
-
-            <!-- Opções de Automação -->
-            <div class="auto-options">
-              <label class="auto-header">
-                <input
-                  type="checkbox"
-                  id="autoMode"
-                  style="width: auto; margin-right: 10px; margin-bottom: 0"
-                />
-                <span style="font-size: 0.9rem"
-                  >🔄 Ativar Repetição Automática</span
-                >
-              </label>
-              <div id="autoOptions" class="auto-details">
-                <div style="display: flex; gap: 10px">
-                  <div style="flex: 1">
-                    <label
-                      style="
-                        font-size: 0.8rem;
-                        margin-bottom: 5px;
-                        color: var(--text-muted);
-                      "
-                      >Qtd. Vezes</label
-                    >
-                    <input
-                      type="number"
-                      id="repeatCount"
-                      value="5"
-                      min="2"
-                      max="100"
-                      style="margin-bottom: 0"
-                    />
-                  </div>
-                  <div style="flex: 1">
-                    <label
-                      style="
-                        font-size: 0.8rem;
-                        margin-bottom: 5px;
-                        color: var(--text-muted);
-                      "
-                      >Intervalo (segundos)</label
-                    >
-                    <input
-                      type="number"
-                      id="repeatInterval"
-                      value="60"
-                      min="5"
-                      style="margin-bottom: 0"
-                    />
-                  </div>
-                </div>
-                <p class="warning-text">
-                  ⚠️ Intervalos muito curtos podem causar bloqueio temporário
-                  pelo YouTube.
-                </p>
-              </div>
-            </div>
-
-            <button type="submit" id="btnSubmit">Enviar</button>
-          </form>
-          <div id="result" class="result"></div>
-          <a href="/logout" class="logout-btn">🚪 Sair da Conta (Logout)</a>
-        </div>
-      </div>
-
-      <footer
-        style="
-          margin-top: 2rem;
-          text-align: center;
-          font-size: 0.75rem;
-          color: var(--text-muted);
-          border-top: 1px solid var(--border-color);
-          padding-top: 1rem;
-        "
-      >
-        Desenvolvido por
-        <a
-          href="https://lucianossantoswebdev.vercel.app/"
-          target="_blank"
+        <footer
           style="
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.75rem;
             color: var(--text-muted);
-            text-decoration: none;
-            font-weight: bold;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
           "
-          >Santos Codes</a
         >
-      </footer>
-      {% endif %}
-    </div>
+          Desenvolvido por
+          <a
+            href="https://lucianossantoswebdev.vercel.app/"
+            target="_blank"
+            style="
+              color: var(--text-muted);
+              text-decoration: none;
+              font-weight: bold;
+            "
+            >Santos Codes</a
+          >
+        </footer>
+        {% endif %}
+      </div>
     </main>
 
     <script>
@@ -848,14 +892,14 @@
       }
 
       // Sidebar Toggle Logic
-      const menuToggle = document.getElementById('menuToggle');
-      const sidebar = document.getElementById('sidebar');
-      const mainContent = document.getElementById('mainContent');
+      const menuToggle = document.getElementById("menuToggle");
+      const sidebar = document.getElementById("sidebar");
+      const mainContent = document.getElementById("mainContent");
 
-      menuToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('closed'); // Desktop behavior
-        sidebar.classList.toggle('open');   // Mobile behavior
-        mainContent.classList.toggle('expanded');
+      menuToggle.addEventListener("click", () => {
+        sidebar.classList.toggle("closed"); // Desktop behavior
+        sidebar.classList.toggle("open"); // Mobile behavior
+        mainContent.classList.toggle("expanded");
       });
 
       let isRunning = false;
@@ -1141,41 +1185,6 @@
           console.error(e);
         }
       }
-
-      function selectChannelFilter(id, name) {
-        currentChannelFilter = id;
-        document.getElementById("listTitle").innerText = `Vídeos de: ${name}`;
-        document.getElementById("channelSearchResults").style.display = "none";
-        document.getElementById("clearFilterBtn").style.display =
-          "inline-block";
-        document.getElementById("channelSearchInput").value = "";
-        loadRecentVideos();
-      }
-
-      function clearFilter() {
-        currentChannelFilter = null;
-        document.getElementById("listTitle").innerText =
-          "Novidades das suas Inscrições";
-        document.getElementById("clearFilterBtn").style.display = "none";
-        document.getElementById("channelSearchResults").style.display = "none";
-        loadRecentVideos();
-      }
-
-      function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-          const resultDiv = document.getElementById("result");
-          resultDiv.innerText = "ID copiado: " + text;
-          resultDiv.className = "result success";
-          resultDiv.style.display = "block";
-          setTimeout(() => (resultDiv.style.display = "none"), 2000);
-        });
-      }
-
-      // Carrega a lista assim que a página abrir (se estiver logado)
-      loadRecentVideos();
-    </script>
-  </body>
-</html>
 
       function selectChannelFilter(id, name) {
         currentChannelFilter = id;
