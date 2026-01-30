@@ -136,6 +136,37 @@ def get_video_info():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/search_channels', methods=['GET'])
+def search_channels():
+    if 'credentials' not in session:
+        return jsonify({"status": "error", "message": "Faça login primeiro."}), 401
+    
+    query = request.args.get('q')
+    if not query:
+        return jsonify({"status": "success", "channels": []})
+
+    creds = Credentials(**session['credentials'])
+    youtube = build("youtube", "v3", credentials=creds)
+
+    try:
+        resp = youtube.search().list(
+            part="snippet",
+            type="channel",
+            q=query,
+            maxResults=5
+        ).execute()
+        
+        channels = []
+        for item in resp.get("items", []):
+            channels.append({
+                "id": item["snippet"]["channelId"],
+                "title": item["snippet"]["channelTitle"],
+                "thumbnail": item["snippet"]["thumbnails"]["default"]["url"]
+            })
+        return jsonify({"status": "success", "channels": channels})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/get_recent_videos', methods=['GET'])
 def get_recent_videos():
     if 'credentials' not in session:
@@ -143,63 +174,99 @@ def get_recent_videos():
 
     creds = Credentials(**session['credentials'])
     youtube = build("youtube", "v3", credentials=creds)
+    
+    page_token = request.args.get('pageToken')
+    channel_filter = request.args.get('channelId')
 
     try:
         videos = []
+        next_page_token = None
 
-        # 1. Buscar Inscrições (Canais que o usuário segue)
-        subs_resp = youtube.subscriptions().list(
-            part="snippet",
-            mine=True,
-            maxResults=6,  # Limite de 6 para não estourar tempo de resposta
-            order="relevance"
-        ).execute()
+        if channel_filter:
+            # MODO 1: Vídeos de um canal específico
+            # Primeiro pega o ID da playlist de uploads
+            ch_resp = youtube.channels().list(
+                part="contentDetails",
+                id=channel_filter
+            ).execute()
+            
+            if ch_resp.get("items"):
+                uploads_id = ch_resp["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+                
+                pl_resp = youtube.playlistItems().list(
+                    part="snippet",
+                    playlistId=uploads_id,
+                    maxResults=12,
+                    pageToken=page_token
+                ).execute()
+                
+                next_page_token = pl_resp.get("nextPageToken")
+                
+                for item in pl_resp.get("items", []):
+                    videos.append({
+                        "id": item["snippet"]["resourceId"]["videoId"],
+                        "title": item["snippet"]["title"],
+                        "channel": item["snippet"]["channelTitle"],
+                        "thumbnail": item["snippet"]["thumbnails"]["medium"]["url"],
+                        "type": "VÍDEO"
+                    })
+        else:
+            # MODO 2: Feed de Inscrições (Padrão)
+            
+            # 1. Buscar Inscrições (Canais que o usuário segue)
+            subs_resp = youtube.subscriptions().list(
+                part="snippet",
+                mine=True,
+                maxResults=6,
+                order="relevance",
+                pageToken=page_token
+            ).execute()
+            
+            next_page_token = subs_resp.get("nextPageToken")
 
-        sub_channels = []
-        for item in subs_resp.get("items", []):
-            sub_channels.append({
-                "id": item["snippet"]["resourceId"]["channelId"],
-                "title": item["snippet"]["title"]
-            })
+            sub_channels = []
+            for item in subs_resp.get("items", []):
+                sub_channels.append({
+                    "id": item["snippet"]["resourceId"]["channelId"],
+                    "title": item["snippet"]["title"]
+                })
 
-        if not sub_channels:
-            return jsonify({"status": "success", "videos": []})
+            if sub_channels:
+                # 2. Buscar ID da playlist de Uploads desses canais
+                channel_ids = [ch["id"] for ch in sub_channels]
+                channels_resp = youtube.channels().list(
+                    part="contentDetails",
+                    id=",".join(channel_ids)
+                ).execute()
 
-        # 2. Buscar ID da playlist de Uploads desses canais
-        channel_ids = [ch["id"] for ch in sub_channels]
-        channels_resp = youtube.channels().list(
-            part="contentDetails",
-            id=",".join(channel_ids)
-        ).execute()
+                uploads_map = {}
+                for item in channels_resp.get("items", []):
+                    uploads_map[item["id"]] = item["contentDetails"]["relatedPlaylists"]["uploads"]
 
-        uploads_map = {}
-        for item in channels_resp.get("items", []):
-            uploads_map[item["id"]] = item["contentDetails"]["relatedPlaylists"]["uploads"]
+                # 3. Buscar o vídeo mais recente de cada canal
+                for ch in sub_channels:
+                    pid = uploads_map.get(ch["id"])
+                    if pid:
+                        try:
+                            pl_resp = youtube.playlistItems().list(
+                                part="snippet",
+                                playlistId=pid,
+                                maxResults=1
+                            ).execute()
 
-        # 3. Buscar o vídeo mais recente de cada canal
-        for ch in sub_channels:
-            pid = uploads_map.get(ch["id"])
-            if pid:
-                try:
-                    pl_resp = youtube.playlistItems().list(
-                        part="snippet",
-                        playlistId=pid,
-                        maxResults=1
-                    ).execute()
+                            if pl_resp.get("items"):
+                                vid_item = pl_resp["items"][0]
+                                videos.append({
+                                    "id": vid_item["snippet"]["resourceId"]["videoId"],
+                                    "title": vid_item["snippet"]["title"],
+                                    "channel": ch["title"],
+                                    "thumbnail": vid_item["snippet"]["thumbnails"]["medium"]["url"],
+                                    "type": "NOVO"
+                                })
+                        except Exception:
+                            continue
 
-                    if pl_resp.get("items"):
-                        vid_item = pl_resp["items"][0]
-                        videos.append({
-                            "id": vid_item["snippet"]["resourceId"]["videoId"],
-                            "title": vid_item["snippet"]["title"],
-                            "channel": ch["title"],
-                            "thumbnail": vid_item["snippet"]["thumbnails"]["medium"]["url"],
-                            "type": "NOVO"
-                        })
-                except Exception:
-                    continue
-
-        return jsonify({"status": "success", "videos": videos})
+        return jsonify({"status": "success", "videos": videos, "nextPageToken": next_page_token})
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

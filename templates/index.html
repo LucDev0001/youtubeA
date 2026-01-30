@@ -7,10 +7,13 @@
     <style>
       body {
         font-family: "Segoe UI", sans-serif;
-        backgroundare0;
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        color: #e0e0e0;
         display: flex;
         justify-content: center;
-        align-itemtarhg 100vh;
+        align-items: flex-start;
+        min-height: 100vh;
+        margin: 0;
         padding: 20px;
         box-sizing: border-box;
       }
@@ -18,17 +21,24 @@
         background-color: rgba(30, 30, 30, 0.95);
         padding: 2.5rem;
         border-radius: 16px;
-        box-shadow: 0 8px i
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        width: 100%;
+        max-width: 1200px;
+        margin-top: 20px;
       }
       h2 {
         text-align: center;
         color: #ff4d4d;
         margin-bottom: 2rem;
-        font-size: orm: uppercase;
+        font-size: 2rem;
+        text-transform: uppercase;
         letter-spacing: 2px;
       }
       label {
         display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
       }
       input,
       select,
@@ -48,6 +58,7 @@
         padding: 12px;
         background-color: #cc0000;
         color: white;
+        border: none;
         border-radius: 6px;
         cursor: pointer;
         font-size: 1rem;
@@ -122,58 +133,104 @@
         font-weight: bold;
         border-left: 4px solid #cc0000;
         padding-left: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .search-box {
+        display: flex;
+        gap: 5px;
+      }
+      .search-box input {
+        margin-bottom: 0;
+        padding: 5px 10px;
+        font-size: 0.8rem;
+        width: 200px;
       }
       .video-list {
-        display: grid;olumns: repeat(auto-fill, minmax(200px, 1fr));
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 15px;
       }
-      .video-card  idden;
+      .video-card {
+        background: #2c2c2c;
+        border-radius: 8px;
+        overflow: hidden;
         cursor: pointer;
         transition:
           transform 0.2s,
           box-shadow 0.2s;
         position: relative;
       }
-      .video-card:h 15px rgba(0,0,0,0.5);
-       deo-card img {
+      .video-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        z-index: 10;
+      }
+      .video-card img {
         width: 100%;
         height: 110px;
         object-fit: cover;
-        display: bltent {
+        display: block;
+      }
+      .video-card-content {
         padding: 10px;
-      }  p {
-        oargin: 0;
+      }
+      .video-card p {
+        font-size: 0.85rem;
+        margin: 0;
         color: #ddd;
         line-height: 1.3;
-        display: -webkit-: 2;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
       }
       .video-card span.channel-name {
-        display: block;em;
+        display: block;
+        font-size: 0.75rem;
         color: #888;
         margin-top: 5px;
       }
       .badge {
         font-size: 0.6rem;
-        border-r: absolute;
+        padding: 2px 4px;
+        border-radius: 3px;
+        position: absolute;
         top: 5px;
         right: 5px;
         font-weight: bold;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
       }
       .badge-live {
         background: #b71c1c;
         color: white;
+      }
+      .badge-video {
         background: #00695c;
         color: white;
-   }  
+      }
+      .copy-btn {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 0.7rem;
+        cursor: pointer;
+        z-index: 20;
+      }
+
       /* Layout Responsivo */
       .main-layout {
         display: grid;
-        grid-template-co
+        grid-template-columns: 1fr;
+        gap: 2rem;
       }
-      
+
       @media (min-width: 900px) {
         .main-layout {
           grid-template-columns: 2fr 1fr; /* Vídeos ocupam mais espaço */
@@ -182,8 +239,12 @@
           background: #252525;
           padding: 20px;
           border-radius: 12px;
-          height: fit-co
-    </st
+          height: fit-content;
+        }
+      }
+    </style>
+  </head>
+  <body>
     <div class="container">
       <h2>Painel de Controle 🤖</h2>
 
@@ -193,153 +254,211 @@
         <a href="/login"><button class="login-btn">Login com Google</button></a>
       </div>
       {% else %}
-t">
-      
-      <!-- Coluna da Esquerda: Vídeos -->
-      <div>
-            <details
-        style="
-          margin-bottom: 1.5rem;
-          background: rgba(255,255,255,0.05);
-          padding: 10px;
-          border-radius: 6px;
-          border: 1px solid #333;
+
+      <div class="main-layout">
+        <!-- Coluna da Esquerda: Vídeos -->
+        <div>
+          <details
+            style="
+              margin-bottom: 1.5rem;
+              background: rgba(255, 255, 255, 0.05);
+              padding: 10px;
+              border-radius: 6px;
+              border: 1px solid #333;
+            "
+          >
+            <summary style="cursor: pointer; font-weight: bold; color: #ccc">
+              ❓ Dicas de Uso (Clique para abrir)
+            </summary>
+            <ul
+              style="
+                text-align: left;
+                margin-top: 10px;
+                font-size: 0.85rem;
+                color: #aaa;
+                padding-left: 20px;
               "
+            >
+              <li>
+                <strong>ID do Vídeo:</strong> É o código no final do link. Ex:
+                youtube.com/watch?v=<b>dQw4w9WgXcQ</b>
+              </li>
+              <li>
+                <strong>Lives:</strong> O bot detecta automaticamente se é Live
+                ou Vídeo ao buscar o ID.
+              </li>
+              <li>
+                <strong>Templates:</strong> Use as mensagens prontas abaixo para
+                agilizar.
+              </li>
+            </ul>
+          </details>
+
+          <div class="video-list-container">
+            <div class="video-list-title">
+              <span id="listTitle">Novidades das suas Inscrições</span>
+              <div class="search-box">
+                <input
+                  type="text"
+                  id="channelSearchInput"
+                  placeholder="Pesquisar canal..."
+                  onkeypress="if (event.key === 'Enter') searchChannels();"
+                />
+                <button
+                  onclick="searchChannels()"
+                  style="width: auto; padding: 5px 10px; margin-bottom: 0"
+                >
+                  🔍
+                </button>
+                <button
+                  id="clearFilterBtn"
+                  onclick="clearFilter()"
+                  style="
+                    width: auto;
+                    padding: 5px 10px;
+                    margin-bottom: 0;
+                    background: #555;
+                    display: none;
+                  "
+                >
+                  ❌
+                </button>
+              </div>
+            </div>
+
+            <div
+              id="channelSearchResults"
+              style="
+                display: none;
+                margin-bottom: 15px;
+                gap: 10px;
+                overflow-x: auto;
+                padding-bottom: 5px;
+              "
+            >
+              <!-- Resultados da pesquisa de canais aparecem aqui -->
+            </div>
+            <div id="recentVideos" class="video-list">
+              <p style="font-size: 0.8rem; color: #666">Carregando...</p>
+            </div>
+            <div style="text-align: center; margin-top: 15px">
+              <button
+                id="loadMoreBtn"
+                onclick="loadMore()"
+                style="
+                  width: auto;
+                  padding: 8px 20px;
+                  background: #333;
+                  display: none;
+                "
+              >
+                Carregar Mais
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna da Direita: Formulário -->
+        <div class="form-section">
+          <form id="botForm">
+            <label>ID do Vídeo / Live</label>
+            <input
+              type="text"
+              name="video_id"
+              id="video_id"
+              placeholder="Ex: dQw4w9WgXcQ"
+              required
+            />
+
+            <div id="videoPreview" class="video-preview">
+              <img id="thumb" src="" alt="Thumbnail" />
+              <h4 id="vidTitle">Titulo do Vídeo</h4>
+              <p id="vidChannel">Canal</p>
+            </div>
+
+            <label>Tipo de Envio</label>
+            <select name="type">
+              <option value="live">Chat ao Vivo (Live)</option>
+              <option value="comment">Comentário em Vídeo</option>
+            </select>
+
+            <label>Mensagens Rápidas (Templates)</label>
+            <select
+              id="msgTemplate"
+              onchange="
+                if (this.value)
+                  document.getElementsByName('message')[0].value = this.value;
+              "
+            >
+              <option value="">-- Selecione ou Digite --</option>
+              <option value="Ótimo conteúdo! Parabéns pelo vídeo. 👏">
+                Elogio Padrão
+              </option>
+              <option value="Salve! Acompanhando a live aqui. 🚀">
+                Live - Salve
+              </option>
+              <option value="Muito bom! Obrigado por compartilhar.">
+                Agradecimento
+              </option>
+              <option value="Qual o link mencionado no vídeo?">
+                Pergunta Link
+              </option>
+            </select>
+
+            <label>Mensagem</label>
+            <textarea
+              name="message"
+              rows="3"
+              placeholder="Digite sua mensagem..."
+              required
+            ></textarea>
+
+            <button type="submit" id="btnSubmit">Enviar</button>
+          </form>
+          <div id="result" class="result"></div>
+          <a href="/logout" class="logout-link">Sair da conta</a>
+        </div>
+      </div>
+      <!-- Fim do main-layout -->
+
+      <footer
+        style="
+          margin-top: 2rem;
+          text-align: center;
+          font-size: 0.75rem;
+          color: #555;
+          border-top: 1px solid #333;
+          padding-top: 1rem;
+        "
       >
-        <summary style="cursor: pointer; font-weight: bold; color: #ccc">
-          ❓ Dicas de Uso (Clique para abrir)
-        </summary>
-        <ul
-          style="
-            text-align: left;
-            margin-top: 10px;
-            font-size: 0.85rem;
-            color: #aaa;
-            padding-left: 20px;
-          "
+        Desenvolvido por
+        <a
+          href="https://lucianossantoswebdev.vercel.app/"
+          target="_blank"
+          style="color: #cc0000; text-decoration: none; font-weight: bold"
+          >Santos Codes</a
         >
-          <li>
-            <strong>ID do Vídeo:</strong> É o código no final do link. Ex:
-          </li>
-          <li>
-            <strong>Lives:</strong> O bot detecta automaticamente se é Live ou
-            Vídeo ao buscar o ID.
-          </li>
-          <li>
-            <strong>Templates:</strong> Use as mensagens prontas abaixo para
-            agilizar.
-          </li>
-        </ul>
-      
-    </details>
-
-   <di class="video-list-container">
-      <d class="video-list-title">
-         Ndades das suas Inscri
-    <div id="recentVideos" clas="vieo-lst">
-      <p style="font-size: 0.8rem; color: #666">Carregando...</p>
+      </footer>
+      {% endif %}
     </div>
-  </div>
-  </div>
 
-    <!--oluna da Direita: Formulário -->
-  <div class="form-section">
-      <fid="botForm">
-      <lel>ID do Vídeo / Live</label>
-    <input
-          tytext"
-        namevideo_id"
-      id="video_id"
-          plolder="Ex: dQw4w9WgXcQ"
-        requed
-    />
-
-     <div d="videoPreview" class="video-preview">
-        <imgd="thumb" src="" alt="Thumbnail" />
-         <h4="vidTitle">Titulo do Vídeo</h4>
-       <p d="vidChannel">Canal</p>
-      </di
- ou
-        <lao de Envio</label>
-      <selt name="type">
-         <ion value="live">Chat ao Vivo (Live)</option>
-       <optin value="comment">Comentário em Vídeo</option>
-      </sele>
-
-     <lael>Mensagens Rápidas (Templates)</label>
-      elect
-          id="msgTemplate"
-      onchange="
-        if (this.value)
-   tlsm)v.value;
-        
-        ption value="">-- Selecione ou Digite --</option>
-      <option value="Ótimo conteúdo! Parabéns pelo vídeo. 👏">
-        Elogio Padrão
-      </option>
-        <option value="Salve! Acompanhando a live aqui. 🚀">
-            Live - Salve
-        </option>
-        <option value="Muito bom! Obrigado por compartilhar.">
-        Agradecimento
-        option>
-        ption value="Qual o link mencionado no vídeo?">
-        Pergunta Link
-          tion>
-      </sect>
-
-       <la>Mensagem</label>
-     <tetarea
-          name="message"
-        ws="3"
-         peholder="Digite sua mensagem..."
-       reqired
-      ></ttarea>
-
-        <button type="submit" id="btnSubmit">Enviar</button>
-   </for>
-    <divd="result" class="result"></div>
-     <a hr"/logout" class="logout-link">Sair da conta</a>
-   </div>
-    </di <!-- Fim do main-layout -->
-
-     <for
-     stye="
-        main-top: 2rem;
-         t-align: center;
-       font-ize: 0.75rem;
-        color:555;
-         ber-top: 1px solid #333;
-       pdding-top: 1rem;
-      "
-     >
-     Desenvovido por
-     <a
-        hr="https://lucianossantoswebdev.vercel.app/"
-      target="_blank"
-          e="color: #cc0000; text-decoration: none; font-weight: bold"
-        >Stos Codes</a
-    >
-      </fo>
-    {% end %}
-</div>
-
-  <scrip
+    <script>
       document
-    .getElementById("botForm")
-        dEventListener("submit", async function (e) {
-        //.. (código de envio existente) ...
-      e.preventDefault();
-          t btn = document.getElementById("btnSubmit");
-        cot resultDiv = document.getElementById("result");
-      const formData = new FormData(this);
+        .getElementById("botForm")
+        ?.addEventListener("submit", async function (e) {
+          // ... (código de envio existente) ...
+          e.preventDefault();
+          const btn = document.getElementById("btnSubmit");
+          const resultDiv = document.getElementById("result");
+          const formData = new FormData(this);
 
-        n.disabled = true;
-      btn.innerText = "Enviando...";
-      resultDiv.style.display = "none";
+          btn.disabled = true;
+          btn.innerText = "Enviando...";
+          resultDiv.style.display = "none";
 
-        try {
-                     method: "POST",
+          try {
+            const response = await fetch("/send", {
+              method: "POST",
               body: formData,
             });
             const data = await response.json();
@@ -389,17 +508,36 @@ t">
         });
       }
 
+      let currentNextPageToken = null;
+      let currentChannelFilter = null;
+
       // Função para carregar vídeos recentes do usuário
-      async function loadRecentVideos() {
+      async function loadRecentVideos(pageToken = "", append = false) {
         const container = document.getElementById("recentVideos");
+        const loadMoreBtn = document.getElementById("loadMoreBtn");
         if (!container) return;
 
+        if (!append) {
+          container.innerHTML =
+            '<p style="font-size: 0.8rem; color: #666;">Carregando...</p>';
+          loadMoreBtn.style.display = "none";
+        }
+
         try {
-          const res = await fetch("/get_recent_videos");
+          let url = `/get_recent_videos?pageToken=${pageToken}`;
+          if (currentChannelFilter) url += `&channelId=${currentChannelFilter}`;
+
+          const res = await fetch(url);
           const data = await res.json();
 
           if (data.status === "success" && data.videos.length > 0) {
-            container.innerHTML = "";
+            if (!append) container.innerHTML = "";
+
+            currentNextPageToken = data.nextPageToken;
+            if (currentNextPageToken)
+              loadMoreBtn.style.display = "inline-block";
+            else loadMoreBtn.style.display = "none";
+
             data.videos.forEach((vid) => {
               const div = document.createElement("div");
               div.className = "video-card";
@@ -416,18 +554,92 @@ t">
                         <p title="${vid.title}">${vid.title}</p>
                         <span class="channel-name">${vid.channel}</span>
                         </div>
+                        <button class="copy-btn" onclick="event.stopPropagation(); copyToClipboard('${vid.id}')" title="Copiar ID">📋</button>
                     `;
               container.appendChild(div);
             });
-          } else {
+          } else if (!append) {
             container.innerHTML =
               '<p style="font-size: 0.8rem; color: #888;">Nenhum vídeo recente encontrado.</p>';
+            loadMoreBtn.style.display = "none";
           }
         } catch (e) {
           console.error(e);
           container.innerHTML =
             '<p style="font-size: 0.8rem; color: #b71c1c;">Erro ao carregar vídeos.</p>';
         }
+      }
+
+      function loadMore() {
+        if (currentNextPageToken) {
+          loadRecentVideos(currentNextPageToken, true);
+        }
+      }
+
+      async function searchChannels() {
+        const query = document.getElementById("channelSearchInput").value;
+        if (!query) return;
+
+        const resultsDiv = document.getElementById("channelSearchResults");
+        resultsDiv.style.display = "flex";
+        resultsDiv.innerHTML =
+          '<span style="color:#888; font-size:0.8rem;">Buscando...</span>';
+
+        try {
+          const res = await fetch(
+            `/search_channels?q=${encodeURIComponent(query)}`,
+          );
+          const data = await res.json();
+
+          resultsDiv.innerHTML = "";
+          if (data.status === "success" && data.channels.length > 0) {
+            data.channels.forEach((ch) => {
+              const btn = document.createElement("div");
+              btn.style.cssText =
+                "min-width: 120px; cursor: pointer; text-align: center; background: #333; padding: 5px; border-radius: 6px;";
+              btn.onclick = () => selectChannelFilter(ch.id, ch.title);
+              btn.innerHTML = `
+                        <img src="${ch.thumbnail}" style="width: 40px; height: 40px; border-radius: 50%;">
+                        <div style="font-size: 0.7rem; color: #fff; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ch.title}</div>
+                    `;
+              resultsDiv.appendChild(btn);
+            });
+          } else {
+            resultsDiv.innerHTML =
+              '<span style="color:#888; font-size:0.8rem;">Nenhum canal encontrado.</span>';
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      function selectChannelFilter(id, name) {
+        currentChannelFilter = id;
+        document.getElementById("listTitle").innerText = `Vídeos de: ${name}`;
+        document.getElementById("channelSearchResults").style.display = "none";
+        document.getElementById("clearFilterBtn").style.display =
+          "inline-block";
+        document.getElementById("channelSearchInput").value = "";
+        loadRecentVideos();
+      }
+
+      function clearFilter() {
+        currentChannelFilter = null;
+        document.getElementById("listTitle").innerText =
+          "Novidades das suas Inscrições";
+        document.getElementById("clearFilterBtn").style.display = "none";
+        document.getElementById("channelSearchResults").style.display = "none";
+        loadRecentVideos();
+      }
+
+      function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+          const resultDiv = document.getElementById("result");
+          resultDiv.innerText = "ID copiado: " + text;
+          resultDiv.className = "result success";
+          resultDiv.style.display = "block";
+          setTimeout(() => (resultDiv.style.display = "none"), 2000);
+        });
       }
 
       // Carrega a lista assim que a página abrir (se estiver logado)
