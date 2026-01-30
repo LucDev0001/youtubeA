@@ -7,10 +7,46 @@
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="/static/apple-touch-icon.png" />
     <style>
+      :root {
+        --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        --text-color: #e0e0e0;
+        --container-bg: rgba(30, 30, 30, 0.95);
+        --heading-color: #ff4d4d;
+        --input-bg: #252525;
+        --input-text: white;
+        --input-border: #333;
+        --card-bg: #2c2c2c;
+        --card-hover: #333;
+        --text-muted: #aaa;
+        --border-color: #333;
+        --shadow-color: rgba(0, 0, 0, 0.6);
+        --details-bg: rgba(255, 255, 255, 0.05);
+        --logout-bg: #333;
+        --logout-text: #aaa;
+        --logout-border: #444;
+      }
+      [data-theme="light"] {
+        --bg-gradient: linear-gradient(135deg, #e0eafc, #cfdef3);
+        --text-color: #333;
+        --container-bg: rgba(255, 255, 255, 0.95);
+        --heading-color: #cc0000;
+        --input-bg: #fff;
+        --input-text: #333;
+        --input-border: #ccc;
+        --card-bg: #f5f5f5;
+        --card-hover: #e0e0e0;
+        --text-muted: #666;
+        --border-color: #ddd;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --details-bg: rgba(0, 0, 0, 0.05);
+        --logout-bg: #f0f0f0;
+        --logout-text: #555;
+        --logout-border: #ccc;
+      }
       body {
         font-family: "Segoe UI", sans-serif;
-        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-        color: #e0e0e0;
+        background: var(--bg-gradient);
+        color: var(--text-color);
         display: flex;
         justify-content: center;
         align-items: flex-start;
@@ -20,18 +56,19 @@
         box-sizing: border-box;
       }
       .container {
-        background-color: rgba(30, 30, 30, 0.95);
+        background-color: var(--container-bg);
         padding: 2.5rem;
         border-radius: 16px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        box-shadow: 0 8px 32px var(--shadow-color);
         backdrop-filter: blur(10px);
         width: 100%;
         max-width: 1200px;
         margin-top: 20px;
+        position: relative;
       }
       h2 {
         text-align: center;
-        color: #ff4d4d;
+        color: var(--heading-color);
         margin-bottom: 2rem;
         font-size: 2rem;
         text-transform: uppercase;
@@ -48,10 +85,10 @@
         width: 100%;
         padding: 10px;
         margin-bottom: 1rem;
-        border: 1px solid #333;
+        border: 1px solid var(--input-border);
         border-radius: 6px;
-        background-color: #252525;
-        color: white;
+        background-color: var(--input-bg);
+        color: var(--input-text);
         box-sizing: border-box;
         font-size: 1rem;
       }
@@ -81,9 +118,9 @@
         display: block;
         width: 100%;
         padding: 10px;
-        background-color: #333;
-        color: #aaa;
-        border: 1px solid #444;
+        background-color: var(--logout-bg);
+        color: var(--logout-text);
+        border: 1px solid var(--logout-border);
         border-radius: 6px;
         text-align: center;
         margin-top: 1rem;
@@ -116,7 +153,7 @@
       .video-preview {
         display: none;
         margin-bottom: 1rem;
-        background: #2c2c2c;
+        background: var(--card-bg);
         padding: 10px;
         border-radius: 6px;
         text-align: center;
@@ -128,12 +165,12 @@
       }
       .video-preview h4 {
         margin: 5px 0;
-        color: #fff;
+        color: var(--text-color);
         font-size: 0.95rem;
       }
       .video-preview p {
         margin: 0;
-        color: #aaa;
+        color: var(--text-muted);
         font-size: 0.8rem;
       }
       /* Estilos da Lista de Vídeos Recentes */
@@ -142,7 +179,7 @@
       }
       .video-list-title {
         font-size: 1.2rem;
-        color: #fff;
+        color: var(--text-color);
         margin-bottom: 1rem;
         font-weight: bold;
         border-left: 4px solid #cc0000;
@@ -167,7 +204,7 @@
         gap: 15px;
       }
       .video-card {
-        background: #2c2c2c;
+        background: var(--card-bg);
         border-radius: 8px;
         overflow: hidden;
         cursor: pointer;
@@ -178,7 +215,7 @@
       }
       .video-card:hover {
         transform: scale(1.05);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 5px 15px var(--shadow-color);
         z-index: 10;
       }
       .video-card img {
@@ -193,7 +230,7 @@
       .video-card p {
         font-size: 0.85rem;
         margin: 0;
-        color: #ddd;
+        color: var(--text-color);
         line-height: 1.3;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -203,7 +240,7 @@
       .video-card span.channel-name {
         display: block;
         font-size: 0.75rem;
-        color: #888;
+        color: var(--text-muted);
         margin-top: 5px;
       }
       .viewers-count {
@@ -261,9 +298,9 @@
       .auto-options {
         margin-bottom: 1rem;
         padding: 15px;
-        background: #333;
+        background: var(--logout-bg);
         border-radius: 6px;
-        border: 1px solid #444;
+        border: 1px solid var(--border-color);
       }
       .auto-header {
         display: flex;
@@ -275,7 +312,7 @@
         display: none;
         margin-top: 15px;
         padding-top: 15px;
-        border-top: 1px solid #444;
+        border-top: 1px solid var(--border-color);
       }
       .warning-text {
         font-size: 0.75rem;
@@ -303,16 +340,36 @@
           grid-template-columns: 2fr 1fr; /* Vídeos ocupam mais espaço */
         }
         .form-section {
-          background: #252525;
+          background: var(--input-bg);
           padding: 20px;
           border-radius: 12px;
           height: fit-content;
         }
       }
+      .theme-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--input-bg);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        font-size: 1.2rem;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .theme-btn:hover {
+        background: var(--card-hover);
+      }
     </style>
   </head>
   <body>
     <div class="container">
+      <button id="themeToggle" class="theme-btn" title="Alternar Tema">☀️</button>
       <h2>Painel de Controle 🤖</h2>
 
       {% if not logged_in %}
@@ -328,10 +385,10 @@
           <details
             style="
               margin-bottom: 1.5rem;
-              background: rgba(255, 255, 255, 0.05);
+              background: var(--details-bg);
               padding: 10px;
               border-radius: 6px;
-              border: 1px solid #333;
+              border: 1px solid var(--border-color);
             "
           >
             <summary style="cursor: pointer; font-weight: bold; color: #ccc">
@@ -342,7 +399,7 @@
                 text-align: left;
                 margin-top: 10px;
                 font-size: 0.85rem;
-                color: #aaa;
+                color: var(--text-muted);
                 padding-left: 20px;
               "
             >
@@ -372,7 +429,7 @@
                     width: auto;
                     padding: 5px 10px;
                     margin-bottom: 0;
-                    background: #333;
+                    background: var(--logout-bg);
                     margin-right: 5px;
                   "
                 >
@@ -386,7 +443,7 @@
                     width: auto;
                     padding: 5px 10px;
                     margin-bottom: 0;
-                    background: #333;
+                    background: var(--logout-bg);
                     margin-right: 5px;
                   "
                 >
@@ -442,7 +499,7 @@
                 style="
                   width: auto;
                   padding: 8px 20px;
-                  background: #333;
+                  background: var(--logout-bg);
                   display: none;
                 "
               >
@@ -523,7 +580,7 @@
                 <div style="display: flex; gap: 10px">
                   <div style="flex: 1">
                     <label
-                      style="font-size: 0.8rem; margin-bottom: 5px; color: #ccc"
+                      style="font-size: 0.8rem; margin-bottom: 5px; color: var(--text-muted)"
                       >Qtd. Vezes</label
                     >
                     <input
@@ -537,7 +594,7 @@
                   </div>
                   <div style="flex: 1">
                     <label
-                      style="font-size: 0.8rem; margin-bottom: 5px; color: #ccc"
+                      style="font-size: 0.8rem; margin-bottom: 5px; color: var(--text-muted)"
                       >Intervalo (segundos)</label
                     >
                     <input
@@ -568,8 +625,8 @@
           margin-top: 2rem;
           text-align: center;
           font-size: 0.75rem;
-          color: #555;
-          border-top: 1px solid #333;
+          color: var(--text-muted);
+          border-top: 1px solid var(--border-color);
           padding-top: 1rem;
         "
       >
@@ -585,6 +642,25 @@
     </div>
 
     <script>
+      const themeToggle = document.getElementById('themeToggle');
+      const html = document.documentElement;
+
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      html.setAttribute('data-theme', savedTheme);
+      updateIcon(savedTheme);
+
+      themeToggle.addEventListener('click', () => {
+          const currentTheme = html.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          html.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+          updateIcon(newTheme);
+      });
+
+      function updateIcon(theme) {
+          themeToggle.innerText = theme === 'dark' ? '☀️' : '🌙';
+      }
+
       let isRunning = false;
 
       // Toggle da interface de automação
@@ -881,6 +957,16 @@
           const resultDiv = document.getElementById("result");
           resultDiv.innerText = "ID copiado: " + text;
           resultDiv.className = "result success";
+          resultDiv.style.display = "block";
+          setTimeout(() => (resultDiv.style.display = "none"), 2000);
+        });
+      }
+
+      // Carrega a lista assim que a página abrir (se estiver logado)
+      loadRecentVideos();
+    </script>
+  </body>
+</html>
           resultDiv.style.display = "block";
           setTimeout(() => (resultDiv.style.display = "none"), 2000);
         });
