@@ -101,4 +101,4 @@ def send_message():
 
 # Necessário para rodar localmente se quiser testar
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
