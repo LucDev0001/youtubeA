@@ -136,6 +136,63 @@ def get_video_info():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/get_recent_videos', methods=['GET'])
+def get_recent_videos():
+    if 'credentials' not in session:
+        return jsonify({"status": "error", "message": "Faça login primeiro."}), 401
+
+    creds = Credentials(**session['credentials'])
+    youtube = build("youtube", "v3", credentials=creds)
+
+    try:
+        videos = []
+
+        # 1. Buscar Lives Ativas (se houver)
+        try:
+            live_resp = youtube.liveBroadcasts().list(
+                part="snippet",
+                broadcastStatus="active",
+                mine=True,
+                maxResults=3
+            ).execute()
+            for item in live_resp.get("items", []):
+                videos.append({
+                    "id": item["id"],
+                    "title": item["snippet"]["title"],
+                    "thumbnail": item["snippet"]["thumbnails"]["medium"]["url"],
+                    "type": "LIVE 🔴"
+                })
+        except Exception as e:
+            logger.warning(f"Erro ao buscar lives: {e}")
+
+        # 2. Buscar Vídeos Recentes (Uploads)
+        # Primeiro pegamos o ID da playlist de uploads do canal
+        channels_resp = youtube.channels().list(part="contentDetails", mine=True).execute()
+        if channels_resp.get("items"):
+            uploads_playlist_id = channels_resp["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+            
+            playlist_resp = youtube.playlistItems().list(
+                part="snippet",
+                playlistId=uploads_playlist_id,
+                maxResults=10
+            ).execute()
+
+            for item in playlist_resp.get("items", []):
+                vid_id = item["snippet"]["resourceId"]["videoId"]
+                # Evita duplicar se a live também estiver na lista de uploads
+                if not any(v['id'] == vid_id for v in videos):
+                    videos.append({
+                        "id": vid_id,
+                        "title": item["snippet"]["title"],
+                        "thumbnail": item["snippet"]["thumbnails"]["medium"]["url"],
+                        "type": "VÍDEO"
+                    })
+
+        return jsonify({"status": "success", "videos": videos})
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/')
 def home():
     is_logged_in = 'credentials' in session

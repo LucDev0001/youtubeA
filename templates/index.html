@@ -114,6 +114,68 @@
         color: #aaa;
         font-size: 0.8rem;
       }
+      /* Estilos da Lista de Vídeos Recentes */
+      .video-list-container {
+        margin-bottom: 1.5rem;
+      }
+      .video-list-title {
+        font-size: 0.9rem;
+        color: #aaa;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+      }
+      .video-list {
+        display: flex;
+        overflow-x: auto;
+        gap: 10px;
+        padding-bottom: 10px;
+      }
+      .video-card {
+        min-width: 140px;
+        width: 140px;
+        background: #2c2c2c;
+        border-radius: 6px;
+        padding: 8px;
+        cursor: pointer;
+        transition:
+          transform 0.2s,
+          background 0.2s;
+      }
+      .video-card:hover {
+        transform: scale(1.05);
+        background: #333;
+      }
+      .video-card img {
+        width: 100%;
+        border-radius: 4px;
+        height: 80px;
+        object-fit: cover;
+      }
+      .video-card p {
+        font-size: 0.75rem;
+        margin: 5px 0 0;
+        color: #ddd;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .badge {
+        font-size: 0.6rem;
+        padding: 2px 4px;
+        border-radius: 3px;
+        float: right;
+        margin-top: -20px;
+        margin-right: 2px;
+        position: relative;
+      }
+      .badge-live {
+        background: #b71c1c;
+        color: white;
+      }
+      .badge-video {
+        background: #1b5e20;
+        color: white;
+      }
     </style>
   </head>
   <body>
@@ -162,6 +224,15 @@
           </li>
         </ul>
       </details>
+
+      <div class="video-list-container">
+        <div class="video-list-title">
+          Seus Vídeos e Lives Recentes (Clique para selecionar)
+        </div>
+        <div id="recentVideos" class="video-list">
+          <p style="font-size: 0.8rem; color: #666">Carregando...</p>
+        </div>
+      </div>
 
       <form id="botForm">
         <label>ID do Vídeo / Live</label>
@@ -307,6 +378,47 @@
           }
         });
       }
+
+      // Função para carregar vídeos recentes do usuário
+      async function loadRecentVideos() {
+        const container = document.getElementById("recentVideos");
+        if (!container) return;
+
+        try {
+          const res = await fetch("/get_recent_videos");
+          const data = await res.json();
+
+          if (data.status === "success" && data.videos.length > 0) {
+            container.innerHTML = "";
+            data.videos.forEach((vid) => {
+              const div = document.createElement("div");
+              div.className = "video-card";
+              div.onclick = function () {
+                const input = document.getElementById("video_id");
+                input.value = vid.id;
+                input.focus();
+                input.blur(); // Dispara o preview
+              };
+              div.innerHTML = `
+                        <img src="${vid.thumbnail}" alt="Thumb">
+                        <div><span class="badge ${vid.type.includes("LIVE") ? "badge-live" : "badge-video"}">${vid.type}</span></div>
+                        <p title="${vid.title}">${vid.title}</p>
+                    `;
+              container.appendChild(div);
+            });
+          } else {
+            container.innerHTML =
+              '<p style="font-size: 0.8rem; color: #888;">Nenhum vídeo recente encontrado.</p>';
+          }
+        } catch (e) {
+          console.error(e);
+          container.innerHTML =
+            '<p style="font-size: 0.8rem; color: #b71c1c;">Erro ao carregar vídeos.</p>';
+        }
+      }
+
+      // Carrega a lista assim que a página abrir (se estiver logado)
+      loadRecentVideos();
     </script>
   </body>
 </html>
