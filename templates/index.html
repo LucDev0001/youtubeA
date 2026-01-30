@@ -223,6 +223,23 @@
         cursor: pointer;
         z-index: 20;
       }
+      .spinner {
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border-left-color: #cc0000;
+        animation: spin 1s linear infinite;
+        margin: 10px auto;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
 
       /* Layout Responsivo */
       .main-layout {
@@ -310,6 +327,20 @@
                   "
                 >
                   🔄
+                </button>
+                <button
+                  id="liveFilterBtn"
+                  onclick="toggleLiveFilter()"
+                  title="Apenas Lives"
+                  style="
+                    width: auto;
+                    padding: 5px 10px;
+                    margin-bottom: 0;
+                    background: #333;
+                    margin-right: 5px;
+                  "
+                >
+                  🔴
                 </button>
                 <input
                   type="text"
@@ -523,6 +554,7 @@
 
       let currentNextPageToken = null;
       let currentChannelFilter = null;
+      let liveFilterActive = false;
 
       // Função para carregar vídeos recentes do usuário
       async function loadRecentVideos(pageToken = "", append = false) {
@@ -532,13 +564,14 @@
 
         if (!append) {
           container.innerHTML =
-            '<p style="font-size: 0.8rem; color: #666;">Carregando...</p>';
+            '<div class="spinner"></div><p style="text-align:center; font-size: 0.8rem; color: #666;">Atualizando...</p>';
           loadMoreBtn.style.display = "none";
         }
 
         try {
           let url = `/get_recent_videos?pageToken=${pageToken}`;
           if (currentChannelFilter) url += `&channelId=${currentChannelFilter}`;
+          if (liveFilterActive) url += `&liveOnly=true`;
 
           const res = await fetch(url);
           const data = await res.json();
@@ -581,6 +614,19 @@
           container.innerHTML =
             '<p style="font-size: 0.8rem; color: #b71c1c;">Erro ao carregar vídeos.</p>';
         }
+      }
+
+      function toggleLiveFilter() {
+        liveFilterActive = !liveFilterActive;
+        const btn = document.getElementById("liveFilterBtn");
+        if (liveFilterActive) {
+          btn.style.background = "#b71c1c";
+          btn.style.border = "1px solid #ff5252";
+        } else {
+          btn.style.background = "#333";
+          btn.style.border = "none";
+        }
+        loadRecentVideos();
       }
 
       function loadMore() {

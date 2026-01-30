@@ -177,6 +177,7 @@ def get_recent_videos():
     
     page_token = request.args.get('pageToken')
     channel_filter = request.args.get('channelId')
+    live_only = request.args.get('liveOnly') == 'true'
 
     try:
         videos = []
@@ -265,6 +266,36 @@ def get_recent_videos():
                                 })
                         except Exception:
                             continue
+
+        # Enriquecer dados para verificar se é LIVE real e filtrar
+        if videos:
+            video_ids = [v['id'] for v in videos]
+            try:
+                # Consulta detalhes para saber se é live
+                vid_resp = youtube.videos().list(
+                    part="snippet",
+                    id=",".join(video_ids)
+                ).execute()
+                
+                vid_map = {item['id']: item for item in vid_resp.get('items', [])}
+                final_videos = []
+
+                for v in videos:
+                    details = vid_map.get(v['id'])
+                    is_live = False
+                    
+                    if details:
+                        if details['snippet'].get('liveBroadcastContent') == 'live':
+                            is_live = True
+                            v['type'] = 'LIVE 🔴'
+                    
+                    if live_only and not is_live:
+                        continue
+                    
+                    final_videos.append(v)
+                videos = final_videos
+            except Exception as e:
+                logger.error(f"Erro ao verificar status de live: {e}")
 
         return jsonify({"status": "success", "videos": videos, "nextPageToken": next_page_token})
 
