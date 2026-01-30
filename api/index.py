@@ -56,7 +56,9 @@ def login():
         scopes=SCOPES
     )
     # Define para onde o Google deve redirecionar após o login
-    flow.redirect_uri = url_for('oauth2callback', _external=True)
+    redirect_uri = url_for('oauth2callback', _external=True)
+    logger.info(f"Redirect URI gerada (Adicione esta URL no Google Cloud): {redirect_uri}")
+    flow.redirect_uri = redirect_uri
     
     authorization_url, state = flow.authorization_url(
         access_type='offline',
