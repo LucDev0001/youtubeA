@@ -301,7 +301,13 @@
                 <button
                   onclick="loadRecentVideos()"
                   title="Atualizar Lista"
-                  style="width: auto; padding: 5px 10px; margin-bottom: 0; background: #333; margin-right: 5px;"
+                  style="
+                    width: auto;
+                    padding: 5px 10px;
+                    margin-bottom: 0;
+                    background: #333;
+                    margin-right: 5px;
+                  "
                 >
                   🔄
                 </button>
@@ -648,12 +654,6 @@
           setTimeout(() => (resultDiv.style.display = "none"), 2000);
         });
       }
-
-      // Carrega a lista assim que a página abrir (se estiver logado)
-      loadRecentVideos();
-    </script>
-  </body>
-</html>
 
       // Carrega a lista assim que a página abrir (se estiver logado)
       loadRecentVideos();
