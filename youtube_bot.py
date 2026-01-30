@@ -53,7 +53,7 @@ def get_authenticated_service():
             flow = InstalledAppFlow.from_client_secrets_file(
                 CLIENT_SECRETS_FILE, SCOPES
             )
-            creds = flow.run_local_server(port=8080)
+            creds = flow.run_local_server(port=0)
         
         # Salva as credenciais para a próxima execução
         with open(TOKEN_FILE, "w") as token:
