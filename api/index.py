@@ -6,8 +6,12 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__, template_folder="../templates")
+
+# Corrige o esquema de URL (http vs https) quando rodando atrás do proxy da Vercel
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # IMPORTANTE: Defina uma chave secreta para assinar os cookies da sessão
 # Na Vercel, você deve definir isso nas Environment Variables como FLASK_SECRET_KEY
