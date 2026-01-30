@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouTube Bot Controller</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #121212;
+        color: #e0e0e0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .container {
+        background-color: #1e1e1e;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        width: 100%;
+        max-width: 400px;
+      }
+      h2 {
+        text-align: center;
+        color: #ff0000;
+        margin-bottom: 1.5rem;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 1rem;
+        border: 1px solid #333;
+        border-radius: 6px;
+        background-color: #2c2c2c;
+        color: white;
+        box-sizing: border-box;
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        background-color: #cc0000;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        transition: background 0.3s;
+      }
+      button:hover {
+        background-color: #ff0000;
+      }
+      .result {
+        margin-top: 1rem;
+        text-align: center;
+        font-size: 0.9rem;
+        padding: 10px;
+        border-radius: 4px;
+        display: none;
+      }
+      .success {
+        background-color: #1b5e20;
+        color: #a5d6a7;
+      }
+      .error {
+        background-color: #b71c1c;
+        color: #ffcdd2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>YouTube Bot 🤖</h2>
+      <form id="botForm">
+        <label>ID do Vídeo / Live</label>
+        <input
+          type="text"
+          name="video_id"
+          placeholder="Ex: dQw4w9WgXcQ"
+          required
+        />
+
+        <label>Tipo de Envio</label>
+        <select name="type">
+          <option value="live">Chat ao Vivo (Live)</option>
+          <option value="comment">Comentário em Vídeo</option>
+        </select>
+
+        <label>Mensagem</label>
+        <textarea
+          name="message"
+          rows="3"
+          placeholder="Digite sua mensagem..."
+          required
+        ></textarea>
+
+        <button type="submit" id="btnSubmit">Enviar</button>
+      </form>
+      <div id="result" class="result"></div>
+    </div>
+
+    <script>
+      document
+        .getElementById("botForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const btn = document.getElementById("btnSubmit");
+          const resultDiv = document.getElementById("result");
+          const formData = new FormData(this);
+
+          btn.disabled = true;
+          btn.innerText = "Enviando...";
+          resultDiv.style.display = "none";
+
+          try {
+            const response = await fetch("/send", {
+              method: "POST",
+              body: formData,
+            });
+            const data = await response.json();
+
+            resultDiv.innerText = data.message;
+            resultDiv.className =
+              "result " + (data.status === "success" ? "success" : "error");
+            resultDiv.style.display = "block";
+          } catch (err) {
+            resultDiv.innerText = "Erro ao conectar com o servidor.";
+            resultDiv.className = "result error";
+            resultDiv.style.display = "block";
+          }
+
+          btn.disabled = false;
+          btn.innerText = "Enviar";
+        });
+    </script>
+  </body>
+</html>
