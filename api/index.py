@@ -23,6 +23,8 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 # Configuração de Logging
 logging.basicConfig(level=logging.INFO)
+# Silencia avisos internos do googleapiclient sobre cache
+logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
 logger = logging.getLogger(__name__)
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
@@ -338,6 +340,14 @@ def terms():
 def send_message():
     # Tenta obter dados do JSON (se enviado via fetch/axios) ou do Form Data
     data = request.get_json(silent=True) or request.form
+
+    # Fallback: Se o frontend enviou JSON mas esqueceu o header Content-Type
+    if not data and request.data:
+        try:
+            data = json.loads(request.data)
+        except Exception:
+            pass
+
     video_id = data.get('video_id')
     message = data.get('message')
     msg_type = data.get('type') # 'comment' ou 'live'
