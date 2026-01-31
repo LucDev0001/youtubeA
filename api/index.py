@@ -336,9 +336,11 @@ def terms():
 
 @app.route('/send', methods=['POST'])
 def send_message():
-    video_id = request.form.get('video_id')
-    message = request.form.get('message')
-    msg_type = request.form.get('type') # 'comment' ou 'live'
+    # Tenta obter dados do JSON (se enviado via fetch/axios) ou do Form Data
+    data = request.get_json(silent=True) or request.form
+    video_id = data.get('video_id')
+    message = data.get('message')
+    msg_type = data.get('type') # 'comment' ou 'live'
 
     if not video_id or not message:
         return jsonify({"status": "error", "message": "Faltam dados."}), 400
@@ -348,7 +350,7 @@ def send_message():
 
     # Reconstrói as credenciais a partir da sessão
     creds = Credentials(**session['credentials'])
-    youtube = build("youtube", "v3", credentials=creds)
+    youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
 
     try:
         if msg_type == 'live':
