@@ -121,7 +121,7 @@ def get_video_info():
         return jsonify({"status": "error", "message": "ID inválido."}), 400
 
     creds = Credentials(**session['credentials'])
-    youtube = build("youtube", "v3", credentials=creds)
+    youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
 
     try:
         response = youtube.videos().list(
@@ -156,7 +156,7 @@ def search_channels():
         return jsonify({"status": "success", "channels": []})
 
     creds = Credentials(**session['credentials'])
-    youtube = build("youtube", "v3", credentials=creds)
+    youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
 
     try:
         resp = youtube.search().list(
@@ -183,7 +183,7 @@ def get_recent_videos():
         return jsonify({"status": "error", "message": "Faça login primeiro."}), 401
 
     creds = Credentials(**session['credentials'])
-    youtube = build("youtube", "v3", credentials=creds)
+    youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
     
     page_token = request.args.get('pageToken')
     channel_filter = request.args.get('channelId')
@@ -341,6 +341,9 @@ def send_message():
     video_id = data.get('video_id')
     message = data.get('message')
     msg_type = data.get('type') # 'comment' ou 'live'
+
+    # Log para debug na Vercel (verifique o que está chegando)
+    logger.info(f"Payload recebido em /send: {data}")
 
     if not video_id or not message:
         return jsonify({"status": "error", "message": "Faltam dados."}), 400
