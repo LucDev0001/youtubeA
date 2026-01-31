@@ -6,6 +6,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from google.auth.exceptions import RefreshError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__, template_folder="../templates")
@@ -382,10 +383,17 @@ def send_message():
             return jsonify({"status": "success", "message": "Comentário postado!"})
 
     except HttpError as e:
-        error_content = json.loads(e.content)
-        reason = error_content.get('error', {}).get('errors', [{}])[0].get('reason', 'Unknown')
-        return jsonify({"status": "error", "message": f"Erro API: {reason}"}), 500
+        try:
+            error_content = json.loads(e.content)
+            reason = error_content.get('error', {}).get('errors', [{}])[0].get('reason', 'Unknown')
+            msg = f"Erro API: {reason}"
+        except Exception:
+            msg = f"Erro API: {e}"
+        return jsonify({"status": "error", "message": msg}), e.resp.status
+    except RefreshError:
+        return jsonify({"status": "error", "message": "Sessão expirada. Faça login novamente."}), 401
     except Exception as e:
+        logger.exception("Erro inesperado no envio")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # Necessário para rodar localmente se quiser testar
