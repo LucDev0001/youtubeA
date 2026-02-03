@@ -465,6 +465,18 @@ def create_checkout():
     try:
         client = abacatepay.AbacatePay(api_key)
 
+        # 1. Criar o cliente primeiro para obter o ID
+        customer = client.customer.create(
+            name=user.get('name') or "Cliente",
+            email=user['email'],
+            cellphone=user.get('phone_number') or "11999999999",
+            taxId=user.get('cpf') or "12345678909",
+            metadata={"userId": user['uid']}
+        )
+        
+        # Garante que pegamos o ID corretamente (objeto ou dict)
+        customer_id = customer.get('id') if isinstance(customer, dict) else customer.id
+
         billing = client.billing.create(
             frequency="ONE_TIME",
             methods=["PIX"],
@@ -479,15 +491,7 @@ def create_checkout():
             ],
             return_url=request.host_url + "app",
             completion_url=request.host_url + "app",
-            customer={
-                "name": user.get('name') or "Cliente",
-                "email": user['email'],
-                "cellphone": user.get('phone_number') or "11999999999",
-                "taxId": user.get('cpf') or "12345678909",
-                "metadata": {
-                    "userId": user['uid']
-                }
-            }
+            customerId=customer_id
         )
         
         return jsonify({"status": "success", "url": billing.url})
