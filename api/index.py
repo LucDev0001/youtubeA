@@ -626,8 +626,12 @@ def abacate_webhook():
     webhook_secret = request.args.get('webhookSecret')
     expected_secret = os.environ.get('ABACATE_WEBHOOK_SECRET')
     
-    if not expected_secret or webhook_secret != expected_secret:
-        logger.warning("Acesso não autorizado ao webhook (Secret inválido ou não configurado).")
+    if not expected_secret:
+        logger.error("ERRO CRÍTICO: A variável de ambiente ABACATE_WEBHOOK_SECRET não está definida no servidor.")
+        return jsonify({"error": "Server Configuration Error"}), 500
+
+    if webhook_secret != expected_secret:
+        logger.warning(f"Acesso negado ao webhook. Secret recebido: '{webhook_secret}'")
         return jsonify({"error": "Unauthorized"}), 401
 
     data = request.get_json()
@@ -640,15 +644,43 @@ def abacate_webhook():
     
     if event == "billing.paid":
         try:
-            billing_data = data.get('data', {}).get('billing', {})
-            customer_data = billing_data.get('customer', {})
-            metadata = customer_data.get('metadata', {})
+            # Navegação segura no JSON (suporta variações da estrutura)
+            payload_data = data.get('data', {})
+            billing = payload_data.get('billing') or payload_data
             
-            user_uid = metadata.get('userId')
-            customer_email = customer_data.get('email')
+            if not billing:
+                logger.error("Objeto 'billing' não encontrado no payload.")
+                return jsonify({"status": "ignored", "reason": "no_billing"}), 200
+
+            customer = billing.get('customer')
+            user_uid = None
+            customer_email = None
+
+            # CENÁRIO A: Customer é um objeto completo (Dicionário)
+            if isinstance(customer, dict):
+                metadata = customer.get('metadata', {})
+                user_uid = metadata.get('userId')
+                customer_email = customer.get('email')
+            
+            # CENÁRIO B: Customer é apenas um ID (String) - BUSCA NA API
+            elif isinstance(customer, str):
+                logger.info(f"Customer ID recebido ({customer}). Buscando detalhes na API...")
+                api_key = os.environ.get("ABACATE_API_KEY")
+                if api_key:
+                    headers = {"Authorization": f"Bearer {api_key}"}
+                    # Busca dados do cliente para recuperar o userId do metadata
+                    resp = requests.get(f"https://api.abacatepay.com/v1/customers/{customer}", headers=headers)
+                    if resp.ok:
+                        cust_data = resp.json().get('data', {})
+                        user_uid = cust_data.get('metadata', {}).get('userId')
+                        customer_email = cust_data.get('email')
+                    else:
+                        logger.error(f"Falha ao buscar customer na API: {resp.text}")
             
             user_ref = None
             uid_log = None
+
+            logger.info(f"Processando Webhook para UID: {user_uid} | Email: {customer_email}")
 
             # 3. Lógica de Atualização: Prioridade ID > Email
             if user_uid:
