@@ -470,6 +470,7 @@ def create_checkout():
         "methods": ["PIX"],
         "products": [
             {
+                "externalId": "plan-pro",
                 "name": "Plano PRO - YouTube Growth Bot",
                 "quantity": 1,
                 "price": 2990 # Valor em centavos (R$ 29,90)
