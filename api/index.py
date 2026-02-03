@@ -479,6 +479,7 @@ def create_checkout():
         "returnUrl": request.host_url + "app",
         "completionUrl": request.host_url + "app",
         "customer": {
+            "name": user.get('name') or "Cliente",
             "email": user['email'],
             "metadata": {
                 "userId": user['uid'] # Enviamos o ID para receber de volta no webhook
