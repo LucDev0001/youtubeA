@@ -563,10 +563,15 @@ def send_message():
                 }
             ).execute()
             
+            # Garante que o campo de histórico existe
+            if 'usage_history' not in user_data:
+                user_ref.set({'usage_history': {}}, merge=True)
+
             # Atualiza contadores
-            updates = {'daily_count': firestore.Increment(1)}
+            updates = {'daily_count': firestore.Increment(1), f'usage_history.{today_str}': firestore.Increment(1)}
             if plan == 'free':
                 updates['credits'] = firestore.Increment(-1)
+            
             user_ref.update(updates)
             return jsonify({"status": "success", "message": "Mensagem enviada na Live!"})
 
@@ -583,10 +588,15 @@ def send_message():
                 }
             ).execute()
             
+            # Garante que o campo de histórico existe
+            if 'usage_history' not in user_data:
+                user_ref.set({'usage_history': {}}, merge=True)
+
             # Atualiza contadores
-            updates = {'daily_count': firestore.Increment(1)}
+            updates = {'daily_count': firestore.Increment(1), f'usage_history.{today_str}': firestore.Increment(1)}
             if plan == 'free':
                 updates['credits'] = firestore.Increment(-1)
+            
             user_ref.update(updates)
             return jsonify({"status": "success", "message": "Comentário postado!"})
 

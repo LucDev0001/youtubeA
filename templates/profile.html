@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Perfil - YouTube Bot</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
       tailwind.config = {
         darkMode: "class",
@@ -97,6 +98,59 @@
                 </p>
               </div>
             </div>
+
+            <!-- Gráfico de Uso -->
+            <div class="mt-8">
+              <h3 class="text-lg font-bold mb-4">
+                Histórico de Envios (Últimos 7 dias)
+              </h3>
+              <div
+                class="bg-[#121212] p-4 rounded-lg border border-gray-700 h-64"
+              >
+                <canvas id="usageChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ações da Conta -->
+          <div
+            class="bg-yt-card dark:bg-light-card p-8 rounded-2xl border border-gray-800 dark:border-gray-200 mb-8"
+          >
+            <h3 class="text-xl font-bold mb-6">Configurações da Conta</h3>
+
+            <div class="flex flex-col gap-4">
+              <div
+                class="flex justify-between items-center border-b border-gray-800 pb-4"
+              >
+                <div>
+                  <p class="font-bold">Senha</p>
+                  <p class="text-sm text-gray-500">
+                    Receba um e-mail para redefinir sua senha.
+                  </p>
+                </div>
+                <button
+                  onclick="resetPassword()"
+                  class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded text-white text-sm"
+                >
+                  Redefinir Senha
+                </button>
+              </div>
+
+              <div class="flex justify-between items-center pt-2">
+                <div>
+                  <p class="font-bold text-red-500">Zona de Perigo</p>
+                  <p class="text-sm text-gray-500">
+                    Excluir permanentemente sua conta e dados.
+                  </p>
+                </div>
+                <button
+                  onclick="deleteAccount()"
+                  class="px-4 py-2 border border-red-900 text-red-500 hover:bg-red-900/20 rounded text-sm"
+                >
+                  Excluir Conta
+                </button>
+              </div>
+            </div>
           </div>
 
           <div class="text-center">
@@ -137,11 +191,92 @@
               document.getElementById("memberSince").innerText =
                 date.toLocaleDateString();
             }
+
+            // Renderiza Gráfico
+            renderChart(data.usage_history || {});
           }
         } else {
           window.location.href = "/login";
         }
       });
+
+      function renderChart(history) {
+        const ctx = document.getElementById("usageChart").getContext("2d");
+
+        // Prepara dados (últimos 7 dias)
+        const labels = [];
+        const dataPoints = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const dateStr = d.toISOString().split("T")[0]; // YYYY-MM-DD
+          labels.push(
+            d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+          );
+          dataPoints.push(history[dateStr] || 0);
+        }
+
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Envios",
+                data: dataPoints,
+                borderColor: "#cc0000",
+                backgroundColor: "rgba(204, 0, 0, 0.2)",
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, grid: { color: "#333" } },
+              x: { grid: { display: false } },
+            },
+          },
+        });
+      }
+
+      function resetPassword() {
+        const user = auth.currentUser;
+        if (user && user.email) {
+          auth
+            .sendPasswordResetEmail(user.email)
+            .then(() =>
+              alert("E-mail de redefinição enviado para " + user.email),
+            )
+            .catch((e) => alert("Erro: " + e.message));
+        }
+      }
+
+      async function deleteAccount() {
+        const confirmDelete = confirm(
+          "Tem certeza? Essa ação não pode ser desfeita e você perderá seus créditos.",
+        );
+        if (!confirmDelete) return;
+
+        const user = auth.currentUser;
+        try {
+          // Apaga dados do Firestore
+          await db.collection("users").doc(user.uid).delete();
+          // Apaga usuário da Auth
+          await user.delete();
+          alert("Conta excluída com sucesso.");
+          window.location.href = "/";
+        } catch (e) {
+          alert(
+            "Erro ao excluir (talvez seja necessário fazer login novamente): " +
+              e.message,
+          );
+        }
+      }
     </script>
   </body>
 </html>

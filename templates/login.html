@@ -48,6 +48,15 @@
           Entrar
         </button>
 
+        <div class="text-right">
+          <button
+            id="btnForgotPassword"
+            class="text-sm text-gray-500 hover:text-white underline"
+          >
+            Esqueci minha senha
+          </button>
+        </div>
+
         <div class="relative flex py-2 items-center">
           <div class="flex-grow border-t border-gray-700"></div>
           <span class="flex-shrink mx-4 text-gray-500 text-sm">Ou</span>
@@ -107,6 +116,25 @@
             // Auth state change will handle redirect
           } catch (e) {
             alert("Erro ao criar conta: " + e.message);
+          }
+        });
+
+      document
+        .getElementById("btnForgotPassword")
+        .addEventListener("click", async () => {
+          const email = document.getElementById("emailInput").value;
+          if (!email)
+            return alert(
+              "Por favor, digite seu e-mail no campo acima primeiro.",
+            );
+
+          try {
+            await auth.sendPasswordResetEmail(email);
+            alert(
+              "E-mail de redefinição de senha enviado! Verifique sua caixa de entrada.",
+            );
+          } catch (e) {
+            alert("Erro: " + e.message);
           }
         });
     </script>
