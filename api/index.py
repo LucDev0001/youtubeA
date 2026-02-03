@@ -13,6 +13,7 @@ from google.auth.exceptions import RefreshError
 from werkzeug.middleware.proxy_fix import ProxyFix
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
+import abacatepay
 
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
 
@@ -461,66 +462,33 @@ def create_checkout():
     if not api_key:
         return jsonify({"status": "error", "message": "Configuração de pagamento incompleta no servidor"}), 500
 
-    # URL da API do Abacate Pay (Atualizado conforme documentação)
-    api_url = "https://api.abacatepay.com/v1/billing/create"
-
-    # Payload atualizado para o endpoint de billing
-    payload = {
-        "frequency": "ONE_TIME", # Alterado para ONE_TIME para corrigir erro 422
-        "methods": ["PIX"],
-        "products": [
-            {
-                "externalId": "plan-pro",
-                "name": "Plano PRO - YouTube Growth Bot",
-                "quantity": 1,
-                "price": 2990 # Valor em centavos (R$ 29,90)
-            }
-        ],
-        "returnUrl": request.host_url + "app",
-        "completionUrl": request.host_url + "app",
-        "customer": {
-            "name": user.get('name') or "Cliente",
-            "email": user['email'],
-            "cellphone": user.get('phone_number') or "11999999999",
-            "metadata": {
-                "userId": user['uid'] # Enviamos o ID para receber de volta no webhook
-            }
-        }
-    }
-    
     try:
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-        
-        # LOGS DE DEBUG: Verifique isso no painel da Vercel (Functions)
-        logger.info(f"Enviando requisição para Abacate Pay: {api_url}")
-        logger.info(f"Payload: {json.dumps(payload)}")
-        
-        response = requests.post(api_url, json=payload, headers=headers)
-        
-        logger.info(f"Resposta Abacate Pay ({response.status_code}): {response.text}")
-        
-        if not response.ok:
-             return jsonify({"status": "error", "message": f"Erro API Pagamento ({response.status_code}): {response.text}"}), 400
+        client = abacatepay.Client(api_key)
 
-        data = response.json()
+        billing = client.billing.create(
+            frequency="ONE_TIME",
+            methods=["PIX"],
+            products=[
+                {
+                    "externalId": "plan-pro",
+                    "name": "Plano PRO - YouTube Growth Bot",
+                    "quantity": 1,
+                    "price": 2990
+                }
+            ],
+            return_url=request.host_url + "app",
+            completion_url=request.host_url + "app",
+            customer={
+                "name": user.get('name') or "Cliente",
+                "email": user['email'],
+                "cellphone": user.get('phone_number') or "11999999999",
+                "metadata": {
+                    "userId": user['uid']
+                }
+            }
+        )
         
-        # Verifica se houve erro lógico na API (mesmo com status 200)
-        if "error" in data:
-             return jsonify({"status": "error", "message": f"Erro API: {data['error']}"}), 400
-        
-        # Retorna a URL de pagamento gerada
-        # Tenta pegar a URL em 'url' ou dentro de 'data.url' dependendo da resposta
-        url = data.get("url")
-        if not url and "data" in data and isinstance(data["data"], dict):
-            url = data["data"].get("url")
-            
-        if not url:
-            return jsonify({"status": "error", "message": "URL de pagamento não encontrada na resposta da API"}), 500
-            
-        return jsonify({"status": "success", "url": url})
+        return jsonify({"status": "success", "url": billing.url})
     except Exception as e:
         logger.error(f"Erro ao criar checkout: {e}")
         return jsonify({"status": "error", "message": "Erro ao processar pagamento"}), 500
