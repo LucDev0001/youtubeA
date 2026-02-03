@@ -2,7 +2,7 @@ import os
 import json
 import logging
 import datetime
-from flask import Flask, request, render_template, jsonify, session, redirect, url_for
+from flask import Flask, request, render_template, jsonify, session, redirect, url_for, send_from_directory
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
@@ -398,6 +398,14 @@ def privacy():
 @app.route('/terms')
 def terms():
     return render_template('terms.html')
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, '..'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+@app.route('/apple-touch-icon.png')
+def apple_touch_icon():
+    return send_from_directory(os.path.join(app.root_path, '..'), 'apple-touch-icon.png', mimetype='image/png')
 
 # --- WEBHOOK ABACATE PAY ---
 @app.route('/webhook/abacate', methods=['POST'])
