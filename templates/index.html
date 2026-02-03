@@ -222,15 +222,20 @@
             placeholder="Sua Senha"
             class="w-full p-3 mb-3 rounded bg-yt-input border border-yt-border text-white"
           />
-          <button
-            id="btnLogin"
-            class="w-full p-3 bg-[#4285f4] hover:bg-[#357ae8] text-white rounded-[18px] uppercase font-medium transition-colors mt-2"
-          >
-            Entrar / Criar Conta
-          </button>
-          <p class="mt-4 text-sm text-gray-500">
-            Ao entrar, uma conta será criada automaticamente se não existir.
-          </p>
+          <div class="flex gap-3 mt-4">
+            <button
+              id="btnLogin"
+              class="flex-1 p-3 bg-[#4285f4] hover:bg-[#357ae8] text-white rounded-[18px] uppercase font-medium transition-colors"
+            >
+              Entrar
+            </button>
+            <button
+              id="btnRegister"
+              class="flex-1 p-3 bg-[#333] hover:bg-[#444] border border-[#555] text-white rounded-[18px] uppercase font-medium transition-colors"
+            >
+              Criar Conta
+            </button>
+          </div>
         </div>
 
         <!-- PAINEL DO USUÁRIO (SÓ APARECE DEPOIS DE LOGAR) -->
@@ -600,43 +605,47 @@
         }
       });
 
-      // Login/Cadastro Simples
-      document
-        .getElementById("btnLogin")
-        .addEventListener("click", async () => {
-          const email = document.getElementById("emailInput").value;
-          const pass = document.getElementById("passInput").value;
-          try {
-            await auth.signInWithEmailAndPassword(email, pass);
-          } catch (e) {
-            // auth/invalid-credential é retornado se a proteção de enumeração de e-mail estiver ativa
-            // auth/user-not-found é retornado se estiver inativa
-            if (
-              e.code === "auth/user-not-found" ||
-              e.code === "auth/invalid-credential"
-            ) {
-              // Cria conta se não existir
-              try {
-                await auth.createUserWithEmailAndPassword(email, pass);
-                // Cria doc inicial no Firestore
-                await db.collection("users").doc(auth.currentUser.uid).set({
-                  plan: "free",
-                  credits: 10,
-                  created_at: new Date(),
-                });
-              } catch (createErr) {
-                if (createErr.code === "auth/email-already-in-use") {
-                  // Se falhar ao criar porque o e-mail existe, então o erro original era senha incorreta
-                  alert("Senha incorreta. Tente novamente.");
-                } else {
-                  alert("Erro ao criar conta: " + createErr.message);
-                }
-              }
-            } else {
-              alert("Erro: " + e.message);
-            }
-          }
-        });
+      // Login
+      document.getElementById("btnLogin").addEventListener("click", async () => {
+        const email = document.getElementById("emailInput").value;
+        const pass = document.getElementById("passInput").value;
+        if (!email || !pass) return alert("Por favor, preencha e-mail e senha.");
+
+        try {
+          await auth.signInWithEmailAndPassword(email, pass);
+        } catch (e) {
+          console.error("Erro login:", e);
+          let msg = e.message;
+          if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') msg = "E-mail ou senha incorretos.";
+          if (e.code === 'auth/user-not-found') msg = "Usuário não encontrado. Crie uma conta.";
+          alert("Erro ao entrar: " + msg);
+        }
+      });
+
+      // Cadastro
+      document.getElementById("btnRegister").addEventListener("click", async () => {
+        const email = document.getElementById("emailInput").value;
+        const pass = document.getElementById("passInput").value;
+        if (!email || !pass) return alert("Por favor, preencha e-mail e senha.");
+
+        try {
+          const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
+          // Cria doc inicial no Firestore
+          await db.collection("users").doc(userCredential.user.uid).set({
+            plan: "free",
+            credits: 10,
+            created_at: new Date(),
+            email: email
+          });
+          alert("Conta criada com sucesso! Você já está logado.");
+        } catch (e) {
+          console.error("Erro cadastro:", e);
+          let msg = e.message;
+          if (e.code === 'auth/email-already-in-use') msg = "Este e-mail já está em uso.";
+          if (e.code === 'auth/weak-password') msg = "A senha deve ter pelo menos 6 caracteres.";
+          alert("Erro ao criar conta: " + msg);
+        }
+      });
 
       document
         .getElementById("btnLogout")
@@ -993,6 +1002,22 @@
         document.getElementById("channelSearchResults").style.display = "none";
         loadRecentVideos();
       }
+
+      function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+          const resultDiv = document.getElementById("result");
+          resultDiv.innerText = "ID copiado: " + text;
+          resultDiv.className = "result success";
+          resultDiv.style.display = "block";
+          setTimeout(() => (resultDiv.style.display = "none"), 2000);
+        });
+      }
+
+      // Carrega a lista assim que a página abrir (se estiver logado)
+      // loadRecentVideos(); // Removido daqui, agora é chamado no checkUserStatus
+    </script>
+  </body>
+</html>
 
       function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => {
