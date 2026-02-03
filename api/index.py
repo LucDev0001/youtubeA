@@ -482,11 +482,26 @@ def create_checkout():
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
+        
+        # LOGS DE DEBUG: Verifique isso no painel da Vercel (Functions)
+        logger.info(f"Enviando requisição para Abacate Pay: {api_url}")
+        logger.info(f"Payload: {json.dumps(payload)}")
+        
         response = requests.post(api_url, json=payload, headers=headers)
+        
+        logger.info(f"Resposta Abacate Pay ({response.status_code}): {response.text}")
+        
+        if not response.ok:
+             return jsonify({"status": "error", "message": f"Erro API Pagamento ({response.status_code}): {response.text}"}), 400
+
         data = response.json()
         
         # Retorna a URL de pagamento gerada
-        return jsonify({"status": "success", "url": data.get("url")})
+        url = data.get("url")
+        if not url:
+            return jsonify({"status": "error", "message": "URL de pagamento não encontrada na resposta da API"}), 500
+            
+        return jsonify({"status": "success", "url": url})
     except Exception as e:
         logger.error(f"Erro ao criar checkout: {e}")
         return jsonify({"status": "error", "message": "Erro ao processar pagamento"}), 500

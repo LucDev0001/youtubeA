@@ -95,10 +95,7 @@
               if (data.status === "success" && data.url) {
                 window.location.href = data.url; // Redireciona para o pagamento
               } else {
-                alert(
-                  "Erro ao iniciar pagamento: " +
-                    (data.message || "Tente novamente."),
-                );
+                alert("Erro: " + (data.message || "Tente novamente."));
                 btn.innerText = "Assinar Agora";
                 btn.disabled = false;
               }
