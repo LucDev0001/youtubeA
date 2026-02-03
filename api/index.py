@@ -567,7 +567,7 @@ def create_checkout():
 
         # Usa dados reais ou fallback se não existirem (para usuários antigos)
         name = user_data.get('name') or user_token.get('name') or "Cliente"
-        email = user_token.get('email')
+        email = user_data.get('email') or user_token.get('email')
         phone = user_data.get('phone') or "11999999999"
         cpf = user_data.get('cpf') or "12345678909"
 
