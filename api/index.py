@@ -477,7 +477,7 @@ def create_checkout():
         client = abacatepay.AbacatePay(api_key)
 
         # 1. Criar o cliente primeiro para obter o ID
-        customer = client.customer.create(
+        customer = client.customers.create(
             name=name,
             email=email,
             cellphone=phone,
