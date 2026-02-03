@@ -1,8 +1,9 @@
 import os
 import json
 import logging
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, session, redirect, url_for
 from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.auth.exceptions import RefreshError
@@ -13,28 +14,91 @@ app = Flask(__name__, template_folder="../templates")
 # Corrige o esquema de URL (http vs https) quando rodando atrás do proxy da Vercel
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
+# IMPORTANTE: Defina uma chave secreta para assinar os cookies da sessão
+# Na Vercel, você deve definir isso nas Environment Variables como FLASK_SECRET_KEY
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "uma_chave_secreta_padrao_para_dev")
+
+# Permite HTTP para testes locais (OAuthlib reclama se não for HTTPS)
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
 # Configuração de Logging
 logging.basicConfig(level=logging.INFO)
 # Silencia avisos internos do googleapiclient sobre cache
 logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
 logger = logging.getLogger(__name__)
 
-def get_credentials_from_request():
-    """
-    Extrai o token do cabeçalho Authorization e cria as credenciais.
-    Espera formato: 'Bearer <token>'
-    """
-    auth_header = request.headers.get('Authorization')
-    if not auth_header:
-        return None
+SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
+
+# Tenta carregar as credenciais do cliente (Client ID/Secret)
+# Na Vercel, coloque o conteúdo do client_secret.json na variável CLIENT_SECRETS_JSON
+CLIENT_SECRETS_JSON = os.environ.get("CLIENT_SECRETS_JSON")
+if not CLIENT_SECRETS_JSON and os.path.exists("client_secret.json"):
+    with open("client_secret.json", "r") as f:
+        CLIENT_SECRETS_JSON = f.read()
+
+def credentials_to_dict(credentials):
+    return {
+        'token': credentials.token,
+        'refresh_token': credentials.refresh_token,
+        'token_uri': credentials.token_uri,
+        'client_id': credentials.client_id,
+        'client_secret': credentials.client_secret,
+        'scopes': credentials.scopes
+    }
+
+@app.route('/login')
+def login():
+    if not CLIENT_SECRETS_JSON:
+        return "Erro: CLIENT_SECRETS_JSON não configurado no servidor.", 500
+
+    client_config = json.loads(CLIENT_SECRETS_JSON)
+    
+    # Cria o fluxo OAuth
+    flow = Flow.from_client_config(
+        client_config,
+        scopes=SCOPES
+    )
+    # Define para onde o Google deve redirecionar após o login
+    redirect_uri = url_for('oauth2callback', _external=True)
+    flow.redirect_uri = redirect_uri
+    
+    authorization_url, state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true'
+    )
+    session['state'] = state
+    return redirect(authorization_url)
+
+@app.route('/oauth2callback')
+def oauth2callback():
+    state = session.get('state')
+    if not state:
+        return redirect(url_for('login'))
+
+    client_config = json.loads(CLIENT_SECRETS_JSON)
+    
+    flow = Flow.from_client_config(
+        client_config,
+        scopes=SCOPES,
+        state=state
+    )
+    flow.redirect_uri = url_for('oauth2callback', _external=True)
     
     try:
-        token = auth_header.split(' ')[1]
-        # Cria credenciais apenas com o token de acesso (sem refresh token)
-        # Isso funciona porque o Firebase no frontend garante que o token é recente.
-        return Credentials(token=token)
-    except IndexError:
-        return None
+        # Troca o código de autorização por credenciais
+        flow.fetch_token(authorization_response=request.url)
+        
+        # Salva as credenciais na sessão do usuário
+        session['credentials'] = credentials_to_dict(flow.credentials)
+        return redirect(url_for('home'))
+    except Exception as e:
+        logger.error(f"Erro no callback OAuth: {e}")
+        return f"Erro ao fazer login: {str(e)} <br><a href='/'>Tentar novamente</a>"
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('home'))
 
 def get_live_chat_id(youtube, video_id):
     try:
@@ -48,8 +112,7 @@ def get_live_chat_id(youtube, video_id):
 
 @app.route('/get_video_info', methods=['POST'])
 def get_video_info():
-    creds = get_credentials_from_request()
-    if not creds:
+    if 'credentials' not in session:
         return jsonify({"status": "error", "message": "Faça login primeiro."}), 401
     
     data = request.get_json()
@@ -58,6 +121,7 @@ def get_video_info():
     if not video_id:
         return jsonify({"status": "error", "message": "ID inválido."}), 400
 
+    creds = Credentials(**session['credentials'])
     youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
 
     try:
@@ -85,14 +149,14 @@ def get_video_info():
 
 @app.route('/search_channels', methods=['GET'])
 def search_channels():
-    creds = get_credentials_from_request()
-    if not creds:
+    if 'credentials' not in session:
         return jsonify({"status": "error", "message": "Faça login primeiro."}), 401
     
     query = request.args.get('q')
     if not query:
         return jsonify({"status": "success", "channels": []})
 
+    creds = Credentials(**session['credentials'])
     youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
 
     try:
@@ -116,10 +180,10 @@ def search_channels():
 
 @app.route('/get_recent_videos', methods=['GET'])
 def get_recent_videos():
-    creds = get_credentials_from_request()
-    if not creds:
+    if 'credentials' not in session:
         return jsonify({"status": "error", "message": "Faça login primeiro."}), 401
 
+    creds = Credentials(**session['credentials'])
     youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
     
     page_token = request.args.get('pageToken')
@@ -260,8 +324,8 @@ def get_recent_videos():
 
 @app.route('/')
 def home():
-    # O frontend agora gerencia o estado de login via Firebase
-    return render_template('index.html')
+    is_logged_in = 'credentials' in session
+    return render_template('index.html', logged_in=is_logged_in)
 
 @app.route('/privacy')
 def privacy():
@@ -293,10 +357,10 @@ def send_message():
     if not video_id or not message:
         return jsonify({"status": "error", "message": "Faltam dados."}), 400
 
-    creds = get_credentials_from_request()
-    if not creds:
+    if 'credentials' not in session:
         return jsonify({"status": "error", "message": "Usuário não logado."}), 401
 
+    creds = Credentials(**session['credentials'])
     youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
 
     try:

@@ -146,8 +146,7 @@
       .login-btn:hover {
         background-color: #357ae8;
       }
-      .logout-btn,
-      #sidebarLogoutBtn {
+      .logout-btn {
         display: block;
         width: 100%;
         padding: 10px;
@@ -162,8 +161,7 @@
         cursor: pointer;
         box-sizing: border-box;
       }
-      .logout-btn:hover,
-      #sidebarLogoutBtn:hover {
+      .logout-btn:hover {
         background-color: #3ea6ff;
         color: white;
         border-color: #3ea6ff;
@@ -532,18 +530,6 @@
           margin-left: 0;
         }
       }
-
-      /* Controle de visibilidade Auth */
-      .auth-hidden {
-        display: none !important;
-      }
-      #app-content {
-        display: none;
-      }
-      #login-screen {
-        text-align: center;
-        padding: 50px 0;
-      }
     </style>
   </head>
   <body>
@@ -591,19 +577,17 @@
       >
         <span>💬</span> Enviar Mensagem
       </a>
+      {% if logged_in %}
       <div
-        id="sidebarLogoutContainer"
-        class="auth-hidden"
         style="
           margin-top: auto;
           border-top: 1px solid var(--border-color);
           padding-top: 10px;
         "
       >
-        <a href="#" id="sidebarLogoutBtn" class="sidebar-item">
-          <span>🚪</span> Sair
-        </a>
+        <a href="/logout" class="sidebar-item"> <span>🚪</span> Sair </a>
       </div>
+      {% endif %}
     </aside>
 
     <main id="mainContent" class="main-content">
@@ -613,18 +597,18 @@
         </button>
         <h2>Painel de Controle</h2>
 
-        <div id="login-screen">
+        {% if not logged_in %}
+        <div style="text-align: center">
           <p>Faça login com sua conta Google para comentar.</p>
-          <button
-            id="googleLoginBtn"
-            class="login-btn"
-            style="max-width: 300px"
+          <a href="/login"
+            ><button class="login-btn" style="max-width: 300px">
+              Login com Google
+            </button></a
           >
-            Login com Google
-          </button>
         </div>
+        {% else %}
 
-        <div id="app-content" class="main-layout">
+        <div class="main-layout">
           <!-- Coluna da Esquerda: Vídeos -->
           <div>
             <details
@@ -845,11 +829,10 @@
               <button type="submit" id="btnSubmit">Enviar</button>
             </form>
             <div id="result" class="result"></div>
-            <button id="mainLogoutBtn" class="logout-btn">
-              🚪 Sair da Conta (Logout)
-            </button>
+            <a href="/logout" class="logout-btn">🚪 Sair da Conta (Logout)</a>
           </div>
         </div>
+        {% endif %}
 
         <footer
           style="
@@ -897,38 +880,7 @@
       </div>
     </main>
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
     <script>
-      // --- CONFIGURAÇÃO DO FIREBASE ---
-      // Vá no Firebase Console > Project Settings > General > Your apps > SDK setup and configuration
-      // Copie o objeto firebaseConfig e cole abaixo:
-      const firebaseConfig = {
-        apiKey: "AIzaSyBTvLqiH3yNd8qBivAWZk7DlOwQ-MueROU",
-        authDomain: "bot-99528.firebaseapp.com",
-        projectId: "bot-99528",
-        storageBucket: "bot-99528.firebasestorage.app",
-        messagingSenderId: "885510438555",
-        appId: "1:885510438555:web:f5cb8f019a15ec5761503e",
-        measurementId: "G-PLTCMFW4R7",
-      };
-
-      // Inicializa Firebase
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
-      const provider = new firebase.auth.GoogleAuthProvider();
-      // Adiciona o escopo necessário para o YouTube
-      provider.addScope("https://www.googleapis.com/auth/youtube.force-ssl");
-
-      let currentUserToken = null;
-
-      // Elementos de UI
-      const loginScreen = document.getElementById("login-screen");
-      const appContent = document.getElementById("app-content");
-      const sidebarLogout = document.getElementById("sidebarLogoutContainer");
-
       const themeToggle = document.getElementById("themeToggle");
       const html = document.documentElement;
 
@@ -958,87 +910,6 @@
         sidebar.classList.toggle("open"); // Mobile behavior
         mainContent.classList.toggle("expanded");
       });
-
-      // --- Lógica de Autenticação ---
-
-      // Monitora estado do login
-      auth.onAuthStateChanged(async (user) => {
-        if (user) {
-          // Usuário logado
-          loginScreen.style.display = "none";
-          appContent.style.display = "grid"; // Restaura o grid layout
-          sidebarLogout.classList.remove("auth-hidden");
-
-          // Pega o token de acesso do Google (OAuth)
-          // Nota: O Firebase Auth token é diferente do Google OAuth Access Token.
-          // Precisamos do credential do provider para pegar o Access Token na hora do login,
-          // mas para sessões persistentes, o Firebase gerencia.
-          // TRUQUE: O Firebase JS SDK armazena o token OAuth no 'credential' apenas no momento do login (signInWithPopup).
-          // Se der refresh na página, perdemos o Access Token do YouTube, embora o usuário esteja logado no Firebase.
-          // SOLUÇÃO: Forçar re-autenticação silenciosa ou pedir login novamente se o token faltar.
-          // Para simplificar neste exemplo, vamos pedir login se não tivermos o token na memória.
-
-          // Tenta recuperar token salvo temporariamente (não recomendado para prod, mas funcional para bot simples)
-          const savedToken = sessionStorage.getItem("yt_access_token");
-          if (savedToken) {
-            currentUserToken = savedToken;
-            loadRecentVideos(); // Carrega vídeos iniciais
-          } else {
-            // Se não tem token, faz logout para forçar login e pegar novo token
-            auth.signOut();
-          }
-        } else {
-          // Usuário deslogado
-          loginScreen.style.display = "block";
-          appContent.style.display = "none";
-          sidebarLogout.classList.add("auth-hidden");
-          currentUserToken = null;
-          sessionStorage.removeItem("yt_access_token");
-        }
-      });
-
-      document
-        .getElementById("googleLoginBtn")
-        .addEventListener("click", () => {
-          auth
-            .signInWithPopup(provider)
-            .then((result) => {
-              // Isso dá o Google Access Token. Você pode usá-lo para acessar a API do Google.
-              const credential = result.credential;
-              currentUserToken = credential.accessToken;
-              sessionStorage.setItem("yt_access_token", currentUserToken);
-            })
-            .catch((error) => {
-              console.error("Erro no login:", error);
-              alert("Erro ao logar: " + error.message);
-            });
-        });
-
-      function performLogout() {
-        auth.signOut();
-      }
-
-      document
-        .getElementById("sidebarLogoutBtn")
-        .addEventListener("click", performLogout);
-      document
-        .getElementById("mainLogoutBtn")
-        .addEventListener("click", performLogout);
-
-      // Helper para Fetch com Auth
-      async function authenticatedFetch(url, options = {}) {
-        if (!currentUserToken) {
-          alert("Sessão expirada ou token inválido. Faça login novamente.");
-          auth.signOut();
-          throw new Error("No token");
-        }
-
-        const headers = options.headers || {};
-        headers["Authorization"] = `Bearer ${currentUserToken}`;
-        options.headers = headers;
-
-        return fetch(url, options);
-      }
 
       let isRunning = false;
 
@@ -1156,7 +1027,7 @@
           if (val.length < 5) return;
 
           try {
-            const res = await authenticatedFetch("/get_video_info", {
+            const res = await fetch("/get_video_info", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ video_id: val }),
@@ -1210,7 +1081,7 @@
           if (currentChannelFilter) url += `&channelId=${currentChannelFilter}`;
           if (liveFilterActive) url += `&liveOnly=true`;
 
-          const res = await authenticatedFetch(url);
+          const res = await fetch(url);
           const data = await res.json();
 
           currentNextPageToken = data.nextPageToken;
@@ -1297,7 +1168,7 @@
           '<span style="color:#888; font-size:0.8rem;">Buscando...</span>';
 
         try {
-          const res = await authenticatedFetch(
+          const res = await fetch(
             `/search_channels?q=${encodeURIComponent(query)}`,
           );
           const data = await res.json();
@@ -1354,7 +1225,7 @@
       }
 
       // Carrega a lista assim que a página abrir (se estiver logado)
-      // Removido daqui, agora é chamado no onAuthStateChanged
+      loadRecentVideos();
     </script>
   </body>
 </html>
