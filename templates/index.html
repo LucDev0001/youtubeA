@@ -8,19 +8,19 @@
       type="image/png"
       sizes="16x16"
       rel="icon"
-      href=".../icons8-youtube-liquid-glass-16.png"
+      href="/static/icons8-youtube-liquid-glass-16.png"
     />
     <link
       type="image/png"
       sizes="32x32"
       rel="icon"
-      href=".../icons8-youtube-liquid-glass-32.png"
+      href="/static/icons8-youtube-liquid-glass-32.png"
     />
     <link
       type="image/png"
       sizes="96x96"
       rel="icon"
-      href=".../icons8-youtube-liquid-glass-96.png"
+      href="/static/icons8-youtube-liquid-glass-96.png"
     />
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
@@ -625,7 +625,12 @@
           try {
             await auth.signInWithEmailAndPassword(email, pass);
           } catch (e) {
-            if (e.code === "auth/user-not-found") {
+            // auth/invalid-credential é retornado se a proteção de enumeração de e-mail estiver ativa
+            // auth/user-not-found é retornado se estiver inativa
+            if (
+              e.code === "auth/user-not-found" ||
+              e.code === "auth/invalid-credential"
+            ) {
               // Cria conta se não existir
               try {
                 await auth.createUserWithEmailAndPassword(email, pass);
@@ -636,7 +641,12 @@
                   created_at: new Date(),
                 });
               } catch (createErr) {
-                alert("Erro ao criar conta: " + createErr.message);
+                if (createErr.code === "auth/email-already-in-use") {
+                  // Se falhar ao criar porque o e-mail existe, então o erro original era senha incorreta
+                  alert("Senha incorreta. Tente novamente.");
+                } else {
+                  alert("Erro ao criar conta: " + createErr.message);
+                }
               }
             } else {
               alert("Erro: " + e.message);
