@@ -52,6 +52,16 @@ async function checkUserStatus() {
       document.getElementById("ytConnected").classList.add("hidden");
       document.getElementById("botArea").classList.add("hidden");
     }
+
+    // Notificação de Créditos Baixos (se for Free e tiver 3 ou menos)
+    if (data.plan !== "pro" && (data.credits || 0) <= 3) {
+      const notif = document.getElementById("creditNotification");
+      const display = document.getElementById("creditCountDisplay");
+      if (notif && display) {
+        display.innerText = data.credits || 0;
+        notif.classList.remove("hidden");
+      }
+    }
   }
 }
 
