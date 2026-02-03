@@ -505,7 +505,7 @@ def create_checkout():
             methods=["PIX"],
             products=[
                 {
-                    "externalId": "plan-pro",
+                    "external_id": "plan-pro",
                     "name": "Plano PRO - YouTube Growth Bot",
                     "description": "Acesso ilimitado ao bot e recursos premium",
                     "quantity": 1,
@@ -514,10 +514,10 @@ def create_checkout():
             ],
             return_url=request.host_url + "app",
             completion_url=request.host_url + "app",
-            customerId=customer_id
+            customer_id=customer_id
         )
         
-        return jsonify({"status": "success", "url": billing.url})
+        return jsonify({"status": "success", "url": billing.data.url})
     except Exception as e:
         error_msg = str(e)
         # Tenta extrair detalhes do erro da SDK se disponível para debug
