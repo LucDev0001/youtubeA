@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="pt-BR" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - YouTube Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              yt: {
+                bg: "#0f0f0f",
+                card: "#1e1e1e",
+                text: "#f1f1f1",
+                red: "#cc0000",
+              },
+              light: { bg: "#f9f9f9", card: "#ffffff", text: "#0f0f0f" },
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body
+    class="bg-yt-bg text-yt-text dark:bg-light-bg dark:text-light-text transition-colors duration-200 font-sans overflow-hidden"
+  >
+    <div class="flex h-screen">
+      <!-- Sidebar -->
+      <aside
+        id="sidebar"
+        class="w-64 bg-yt-card dark:bg-light-card border-r border-gray-800 dark:border-gray-200 flex flex-col fixed md:relative z-20 h-full transition-transform transform -translate-x-full md:translate-x-0"
+      >
+        <div class="p-6 text-xl font-bold flex items-center gap-2">
+          <span class="text-red-600">▶</span> Painel
+        </div>
+        <nav class="flex-1 px-4 space-y-2">
+          <a
+            href="#"
+            class="block px-4 py-3 rounded-lg bg-red-600 text-white font-medium"
+            >📺 Dashboard</a
+          >
+          <a
+            href="/plans"
+            class="block px-4 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition"
+            >💎 Planos</a
+          >
+        </nav>
+        <div class="p-4 border-t border-gray-800 dark:border-gray-200">
+          <button
+            onclick="logout()"
+            class="w-full py-2 text-gray-400 hover:text-white text-sm"
+          >
+            Sair da Conta
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main
+        class="flex-1 flex flex-col h-screen overflow-hidden relative w-full"
+      >
+        <!-- Topbar -->
+        <header
+          class="h-16 bg-yt-card dark:bg-light-card border-b border-gray-800 dark:border-gray-200 flex items-center justify-between px-6"
+        >
+          <button id="menuToggle" class="md:hidden text-2xl">☰</button>
+          <div class="flex items-center gap-4">
+            <span id="planStatus" class="text-sm font-bold text-green-500"
+              >Carregando...</span
+            >
+            <a
+              href="/plans"
+              id="upgradeBtn"
+              class="hidden text-xs bg-yellow-600 text-white px-2 py-1 rounded"
+              >UPGRADE</a
+            >
+            <button id="themeToggle" class="text-xl">☀️</button>
+          </div>
+        </header>
+
+        <!-- Content Scrollable -->
+        <div class="flex-1 overflow-y-auto p-6">
+          <!-- Status Cards -->
+          <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <div
+              class="p-6 bg-yt-card dark:bg-light-card rounded-xl border border-gray-800 dark:border-gray-200"
+            >
+              <h3 class="font-bold mb-2">Conexão YouTube</h3>
+              <div id="ytConnectionStatus">
+                <p class="text-yellow-500 text-sm mb-3">
+                  ⚠️ Canal não conectado
+                </p>
+                <button
+                  onclick="connectYoutube()"
+                  class="px-4 py-2 bg-red-600 text-white rounded text-sm font-bold"
+                >
+                  Conectar Agora
+                </button>
+              </div>
+              <div id="ytConnected" class="hidden">
+                <p class="text-green-500 font-bold">✅ Canal Conectado</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bot Interface (Hidden until connected) -->
+          <div id="botArea" class="hidden grid lg:grid-cols-3 gap-8">
+            <!-- Left: Video Feed -->
+            <div class="lg:col-span-2">
+              <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Feed de Vídeos</h2>
+                <button
+                  onclick="loadRecentVideos()"
+                  class="p-2 bg-gray-800 rounded-full hover:bg-gray-700"
+                >
+                  🔄
+                </button>
+              </div>
+              <div
+                id="recentVideos"
+                class="grid grid-cols-2 md:grid-cols-3 gap-4"
+              >
+                <!-- Videos injected by JS -->
+              </div>
+              <div class="text-center mt-6">
+                <button
+                  id="loadMoreBtn"
+                  onclick="loadRecentVideos(currentNextPageToken, true)"
+                  class="hidden px-6 py-2 bg-gray-800 rounded-full text-sm"
+                >
+                  Carregar Mais
+                </button>
+              </div>
+            </div>
+
+            <!-- Right: Action Form -->
+            <div class="lg:col-span-1">
+              <div
+                class="bg-yt-card dark:bg-light-card p-6 rounded-xl border border-gray-800 dark:border-gray-200 sticky top-6"
+              >
+                <h3 class="font-bold mb-4">Painel de Ação</h3>
+                <form id="botForm" class="space-y-4">
+                  <div>
+                    <label class="text-xs text-gray-500 uppercase font-bold"
+                      >ID do Vídeo</label
+                    >
+                    <input
+                      type="text"
+                      name="video_id"
+                      id="video_id"
+                      class="w-full p-2 bg-[#121212] border border-gray-700 rounded text-white"
+                      placeholder="Ex: dQw4w9WgXcQ"
+                      required
+                    />
+                  </div>
+
+                  <div
+                    id="videoPreview"
+                    class="hidden bg-black p-2 rounded text-center"
+                  >
+                    <img id="thumb" src="" class="w-full rounded mb-2" />
+                    <p id="vidTitle" class="text-xs font-bold truncate"></p>
+                    <p id="vidChannel" class="text-[10px] text-gray-400"></p>
+                  </div>
+
+                  <div>
+                    <label class="text-xs text-gray-500 uppercase font-bold"
+                      >Tipo</label
+                    >
+                    <select
+                      name="type"
+                      class="w-full p-2 bg-[#121212] border border-gray-700 rounded text-white"
+                    >
+                      <option value="live">Chat ao Vivo (Live)</option>
+                      <option value="comment">Comentário</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="text-xs text-gray-500 uppercase font-bold"
+                      >Mensagem</label
+                    >
+                    <textarea
+                      name="message"
+                      rows="3"
+                      class="w-full p-2 bg-[#121212] border border-gray-700 rounded text-white"
+                      required
+                    ></textarea>
+                  </div>
+
+                  <div class="bg-gray-900 p-3 rounded border border-gray-800">
+                    <label
+                      class="flex items-center gap-2 text-sm cursor-pointer"
+                    >
+                      <input type="checkbox" id="autoMode" />
+                      <span>🔄 Modo Automático</span>
+                    </label>
+                    <div
+                      id="autoOptions"
+                      class="hidden mt-3 grid grid-cols-2 gap-2"
+                    >
+                      <div>
+                        <label class="text-[10px]">Repetições</label>
+                        <input
+                          type="number"
+                          id="repeatCount"
+                          value="5"
+                          class="w-full p-1 bg-black border border-gray-700 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label class="text-[10px]">Intervalo (s)</label>
+                        <input
+                          type="number"
+                          id="repeatInterval"
+                          value="60"
+                          class="w-full p-1 bg-black border border-gray-700 rounded text-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    id="btnSubmit"
+                    class="w-full py-3 bg-yt-red hover:bg-red-700 text-white font-bold rounded-lg transition"
+                  >
+                    Enviar
+                  </button>
+                </form>
+                <div id="result" class="hidden"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Importando arquivos JS externos -->
+    <script src="/static/js/firebase-config.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+  </body>
+</html>

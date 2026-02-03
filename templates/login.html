@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - YouTube Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body
+    class="bg-[#0f0f0f] text-white flex items-center justify-center min-h-screen"
+  >
+    <div
+      class="w-full max-w-md p-8 bg-[#1e1e1e] rounded-2xl shadow-2xl border border-gray-800"
+    >
+      <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold mb-2">Bem-vindo de volta</h2>
+        <p class="text-gray-400">Acesse sua conta para continuar</p>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-400 mb-1"
+            >E-mail</label
+          >
+          <input
+            type="email"
+            id="emailInput"
+            class="w-full p-3 bg-[#121212] border border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
+            placeholder="seu@email.com"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-400 mb-1"
+            >Senha</label
+          >
+          <input
+            type="password"
+            id="passInput"
+            class="w-full p-3 bg-[#121212] border border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
+            placeholder="••••••••"
+          />
+        </div>
+
+        <button
+          id="btnLogin"
+          class="w-full py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition"
+        >
+          Entrar
+        </button>
+
+        <div class="relative flex py-2 items-center">
+          <div class="flex-grow border-t border-gray-700"></div>
+          <span class="flex-shrink mx-4 text-gray-500 text-sm">Ou</span>
+          <div class="flex-grow border-t border-gray-700"></div>
+        </div>
+
+        <button
+          id="btnRegister"
+          class="w-full py-3 bg-transparent border border-gray-600 hover:bg-gray-800 rounded-lg font-bold transition"
+        >
+          Criar Nova Conta
+        </button>
+      </div>
+
+      <p class="mt-6 text-center text-sm text-gray-500">
+        <a href="/" class="hover:text-white">← Voltar para Home</a>
+      </p>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="/static/js/firebase-config.js"></script>
+
+    <script>
+      // Redireciona se já estiver logado
+      auth.onAuthStateChanged((user) => {
+        if (user) window.location.href = "/app";
+      });
+
+      document
+        .getElementById("btnLogin")
+        .addEventListener("click", async () => {
+          const email = document.getElementById("emailInput").value;
+          const pass = document.getElementById("passInput").value;
+          try {
+            await auth.signInWithEmailAndPassword(email, pass);
+          } catch (e) {
+            alert("Erro ao entrar: " + e.message);
+          }
+        });
+
+      document
+        .getElementById("btnRegister")
+        .addEventListener("click", async () => {
+          const email = document.getElementById("emailInput").value;
+          const pass = document.getElementById("passInput").value;
+          try {
+            const cred = await auth.createUserWithEmailAndPassword(email, pass);
+            await db.collection("users").doc(cred.user.uid).set({
+              plan: "free",
+              credits: 10,
+              created_at: new Date(),
+              email: email,
+            });
+            // Auth state change will handle redirect
+          } catch (e) {
+            alert("Erro ao criar conta: " + e.message);
+          }
+        });
+    </script>
+  </body>
+</html>

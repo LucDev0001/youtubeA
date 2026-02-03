@@ -12,7 +12,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 
-app = Flask(__name__, template_folder="../templates")
+app = Flask(__name__, template_folder="../templates", static_folder="../static")
 
 # Corrige o esquema de URL (http vs https) quando rodando atrás do proxy da Vercel
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
@@ -388,8 +388,19 @@ def get_recent_videos():
 
 @app.route('/')
 def home():
-    # O frontend agora controla o estado via Firebase JS SDK
     return render_template('index.html')
+
+@app.route('/login')
+def login_page():
+    return render_template('login.html')
+
+@app.route('/app')
+def dashboard():
+    return render_template('home.html')
+
+@app.route('/plans')
+def plans_page():
+    return render_template('plans.html')
 
 @app.route('/privacy')
 def privacy():
