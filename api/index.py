@@ -49,6 +49,8 @@ else:
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
+ADMIN_UID = "BDZUzrq5kSSG5TMO3s2LI15gWEu2"
+
 # --- ROTAÇÃO DE CHAVES API ---
 # Carrega uma lista de credenciais ou um único arquivo.
 # Para rotação, a variável de ambiente CLIENT_SECRETS_JSON pode ser uma lista de JSONs strings: ['{...}', '{...}']
@@ -451,6 +453,74 @@ def favicon():
 def apple_touch_icon():
     return send_from_directory(os.path.join(app.root_path, '..'), 'apple-touch-icon.png', mimetype='image/png')
 
+# --- ROTAS ADMIN ---
+@app.route('/admin')
+def admin_page():
+    return render_template('admin.html')
+
+@app.route('/api/admin/data', methods=['GET'])
+def admin_get_data():
+    user_token = get_user_from_token()
+    if not user_token or user_token['uid'] != ADMIN_UID:
+        return jsonify({"status": "error", "message": "Acesso negado"}), 403
+
+    # Busca Preço Atual
+    settings_ref = db.collection('settings').document('general')
+    settings_doc = settings_ref.get()
+    price = 2990
+    if settings_doc.exists:
+        price = settings_doc.to_dict().get('pro_price', 2990)
+
+    # Busca Usuários
+    users_ref = db.collection('users')
+    docs = users_ref.stream()
+    users_list = []
+    for doc in docs:
+        u = doc.to_dict()
+        created_at = u.get('created_at')
+        if created_at:
+            # Converte timestamp do Firestore para string
+            if hasattr(created_at, 'isoformat'):
+                created_at = created_at.isoformat()
+            else:
+                created_at = str(created_at)
+        
+        users_list.append({
+            'uid': doc.id,
+            'email': u.get('email', 'N/A'),
+            'plan': u.get('plan', 'free'),
+            'credits': u.get('credits', 0),
+            'daily_count': u.get('daily_count', 0),
+            'created_at': created_at
+        })
+
+    return jsonify({
+        "status": "success",
+        "price": price / 100, # Envia como float (ex: 29.90)
+        "users": users_list
+    })
+
+@app.route('/api/admin/price', methods=['POST'])
+def admin_update_price():
+    user_token = get_user_from_token()
+    if not user_token or user_token['uid'] != ADMIN_UID:
+        return jsonify({"status": "error", "message": "Acesso negado"}), 403
+    
+    data = request.get_json()
+    new_price = data.get('price')
+    
+    if new_price is None:
+        return jsonify({"status": "error", "message": "Preço inválido"}), 400
+        
+    # Converte para centavos
+    price_cents = int(float(new_price) * 100)
+    
+    db.collection('settings').document('general').set({
+        'pro_price': price_cents
+    }, merge=True)
+    
+    return jsonify({"status": "success", "message": "Preço atualizado"})
+
 # --- CRIAÇÃO DE CHECKOUT (INTEGRAÇÃO DIRETA) ---
 @app.route('/create_checkout', methods=['POST'])
 def create_checkout():
@@ -473,6 +543,13 @@ def create_checkout():
         email = user_token.get('email')
         phone = user_data.get('phone') or "11999999999"
         cpf = user_data.get('cpf') or "12345678909"
+
+        # Busca preço dinâmico do banco de dados
+        settings_ref = db.collection('settings').document('general')
+        settings_doc = settings_ref.get()
+        price = 2990 # Valor padrão
+        if settings_doc.exists:
+            price = settings_doc.to_dict().get('pro_price', 2990)
 
         client = abacatepay.AbacatePay(api_key)
 
@@ -509,7 +586,7 @@ def create_checkout():
                     "name": "Plano PRO - YouTube Growth Bot",
                     "description": "Acesso ilimitado ao bot e recursos premium",
                     "quantity": 1,
-                    "price": 2990
+                    "price": price # Usa o preço do banco de dados
                 }
             ],
             return_url=request.host_url + "app",
