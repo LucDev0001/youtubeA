@@ -13,11 +13,52 @@
       class="w-full max-w-md p-8 bg-[#1e1e1e] rounded-2xl shadow-2xl border border-gray-800"
     >
       <div class="text-center mb-8">
-        <h2 class="text-3xl font-bold mb-2">Bem-vindo de volta</h2>
-        <p class="text-gray-400">Acesse sua conta para continuar</p>
+        <h2 class="text-3xl font-bold mb-2" id="formTitle">
+          Bem-vindo de volta
+        </h2>
+        <p class="text-gray-400" id="formSubtitle">
+          Acesse sua conta para continuar
+        </p>
       </div>
 
       <div class="space-y-4">
+        <!-- Campos Extras para Cadastro (Ocultos no Login) -->
+        <div id="registerFields" class="hidden space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1"
+              >Nome Completo</label
+            >
+            <input
+              type="text"
+              id="nameInput"
+              class="w-full p-3 bg-[#121212] border border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
+              placeholder="Seu Nome"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1"
+              >CPF (Apenas números)</label
+            >
+            <input
+              type="text"
+              id="cpfInput"
+              class="w-full p-3 bg-[#121212] border border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
+              placeholder="00000000000"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1"
+              >Celular</label
+            >
+            <input
+              type="text"
+              id="phoneInput"
+              class="w-full p-3 bg-[#121212] border border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
+              placeholder="11999999999"
+            />
+          </div>
+        </div>
+
         <div>
           <label class="block text-sm font-medium text-gray-400 mb-1"
             >E-mail</label
@@ -42,13 +83,13 @@
         </div>
 
         <button
-          id="btnLogin"
+          id="btnAction"
           class="w-full py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition"
         >
           Entrar
         </button>
 
-        <div class="text-right">
+        <div class="text-right" id="forgotPassContainer">
           <button
             id="btnForgotPassword"
             class="text-sm text-gray-500 hover:text-white underline"
@@ -64,7 +105,7 @@
         </div>
 
         <button
-          id="btnRegister"
+          id="toggleMode"
           class="w-full py-3 bg-transparent border border-gray-600 hover:bg-gray-800 rounded-lg font-bold transition"
         >
           Criar Nova Conta
@@ -83,39 +124,82 @@
     <script src="/static/js/firebase-config.js"></script>
 
     <script>
+      let isRegisterMode = false;
+
       // Redireciona se já estiver logado
       auth.onAuthStateChanged((user) => {
         if (user) window.location.href = "/app";
       });
 
-      document
-        .getElementById("btnLogin")
-        .addEventListener("click", async () => {
-          const email = document.getElementById("emailInput").value;
-          const pass = document.getElementById("passInput").value;
-          try {
-            await auth.signInWithEmailAndPassword(email, pass);
-          } catch (e) {
-            alert("Erro ao entrar: " + e.message);
-          }
-        });
+      // Alternar entre Login e Cadastro
+      document.getElementById("toggleMode").addEventListener("click", () => {
+        isRegisterMode = !isRegisterMode;
+        const title = document.getElementById("formTitle");
+        const subtitle = document.getElementById("formSubtitle");
+        const btnAction = document.getElementById("btnAction");
+        const toggleBtn = document.getElementById("toggleMode");
+        const registerFields = document.getElementById("registerFields");
+        const forgotPass = document.getElementById("forgotPassContainer");
+
+        if (isRegisterMode) {
+          title.innerText = "Criar Conta";
+          subtitle.innerText = "Preencha seus dados para começar";
+          btnAction.innerText = "Cadastrar";
+          toggleBtn.innerText = "Já tenho conta. Entrar";
+          registerFields.classList.remove("hidden");
+          forgotPass.classList.add("hidden");
+        } else {
+          title.innerText = "Bem-vindo de volta";
+          subtitle.innerText = "Acesse sua conta para continuar";
+          btnAction.innerText = "Entrar";
+          toggleBtn.innerText = "Criar Nova Conta";
+          registerFields.classList.add("hidden");
+          forgotPass.classList.remove("hidden");
+        }
+      });
 
       document
-        .getElementById("btnRegister")
+        .getElementById("btnAction")
         .addEventListener("click", async () => {
           const email = document.getElementById("emailInput").value;
           const pass = document.getElementById("passInput").value;
+
+          if (!email || !pass) return alert("Preencha e-mail e senha.");
+
           try {
-            const cred = await auth.createUserWithEmailAndPassword(email, pass);
-            await db.collection("users").doc(cred.user.uid).set({
-              plan: "free",
-              credits: 10,
-              created_at: new Date(),
-              email: email,
-            });
-            // Auth state change will handle redirect
+            if (isRegisterMode) {
+              // Lógica de Cadastro
+              const name = document.getElementById("nameInput").value;
+              const cpf = document.getElementById("cpfInput").value;
+              const phone = document.getElementById("phoneInput").value;
+
+              if (!name || !cpf || !phone)
+                return alert("Preencha todos os campos para cadastro.");
+
+              const cred = await auth.createUserWithEmailAndPassword(
+                email,
+                pass,
+              );
+
+              // Salva dados extras no Firestore
+              await db
+                .collection("users")
+                .doc(cred.user.uid)
+                .set({
+                  plan: "free",
+                  credits: 10,
+                  created_at: new Date(),
+                  email: email,
+                  name: name,
+                  cpf: cpf.replace(/\D/g, ""), // Remove formatação
+                  phone: phone.replace(/\D/g, ""), // Remove formatação
+                });
+            } else {
+              // Lógica de Login
+              await auth.signInWithEmailAndPassword(email, pass);
+            }
           } catch (e) {
-            alert("Erro ao criar conta: " + e.message);
+            alert("Erro: " + e.message);
           }
         });
 

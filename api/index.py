@@ -454,8 +454,8 @@ def apple_touch_icon():
 # --- CRIAÇÃO DE CHECKOUT (INTEGRAÇÃO DIRETA) ---
 @app.route('/create_checkout', methods=['POST'])
 def create_checkout():
-    user = get_user_from_token()
-    if not user: return jsonify({"status": "error", "message": "Não autenticado"}), 401
+    user_token = get_user_from_token()
+    if not user_token: return jsonify({"status": "error", "message": "Não autenticado"}), 401
     
     # Pegue sua API Key no painel do Abacate Pay -> Desenvolvedor
     api_key = os.environ.get("ABACATE_API_KEY")
@@ -463,15 +463,26 @@ def create_checkout():
         return jsonify({"status": "error", "message": "Configuração de pagamento incompleta no servidor"}), 500
 
     try:
+        # Busca dados completos do usuário no Firestore
+        uid = user_token['uid']
+        user_doc = db.collection('users').document(uid).get()
+        user_data = user_doc.to_dict() if user_doc.exists else {}
+
+        # Usa dados reais ou fallback se não existirem (para usuários antigos)
+        name = user_data.get('name') or user_token.get('name') or "Cliente"
+        email = user_token.get('email')
+        phone = user_data.get('phone') or "11999999999"
+        cpf = user_data.get('cpf') or "12345678909"
+
         client = abacatepay.AbacatePay(api_key)
 
         # 1. Criar o cliente primeiro para obter o ID
         customer = client.customer.create(
-            name=user.get('name') or "Cliente",
-            email=user['email'],
-            cellphone=user.get('phone_number') or "11999999999",
-            taxId=user.get('cpf') or "12345678909",
-            metadata={"userId": user['uid']}
+            name=name,
+            email=email,
+            cellphone=phone,
+            taxId=cpf,
+            metadata={"userId": uid}
         )
         
         # Garante que pegamos o ID corretamente (objeto ou dict)
