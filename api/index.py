@@ -481,6 +481,7 @@ def create_checkout():
         "customer": {
             "name": user.get('name') or "Cliente",
             "email": user['email'],
+            "cellphone": user.get('phone_number') or "11999999999",
             "metadata": {
                 "userId": user['uid'] # Enviamos o ID para receber de volta no webhook
             }
