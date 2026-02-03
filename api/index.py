@@ -485,8 +485,20 @@ def create_checkout():
             metadata={"userId": uid}
         )
         
+        logger.info(f"Customer criado: {customer}")
+        
         # Garante que pegamos o ID corretamente (objeto ou dict)
-        customer_id = customer.get('id') if isinstance(customer, dict) else customer.id
+        customer_id = None
+        if isinstance(customer, dict):
+            customer_id = customer.get('id') or customer.get('data', {}).get('id')
+        else:
+            customer_id = getattr(customer, 'id', None)
+            if not customer_id and hasattr(customer, 'data'):
+                data_obj = customer.data
+                customer_id = data_obj.get('id') if isinstance(data_obj, dict) else getattr(data_obj, 'id', None)
+
+        if not customer_id:
+            raise ValueError(f"ID do cliente não encontrado. Resposta: {customer}")
 
         billing = client.billing.create(
             frequency="ONE_TIME",
