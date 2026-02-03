@@ -3,6 +3,7 @@ import json
 import logging
 import datetime
 import random
+import requests
 from flask import Flask, request, render_template, jsonify, session, redirect, url_for, send_from_directory
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -449,27 +450,74 @@ def favicon():
 def apple_touch_icon():
     return send_from_directory(os.path.join(app.root_path, '..'), 'apple-touch-icon.png', mimetype='image/png')
 
+# --- CRIAÇÃO DE CHECKOUT (INTEGRAÇÃO DIRETA) ---
+@app.route('/create_checkout', methods=['POST'])
+def create_checkout():
+    user = get_user_from_token()
+    if not user: return jsonify({"status": "error", "message": "Não autenticado"}), 401
+    
+    # Pegue sua API Key no painel do Abacate Pay -> Desenvolvedor
+    api_key = os.environ.get("ABACATE_API_KEY")
+    if not api_key:
+        return jsonify({"status": "error", "message": "Configuração de pagamento incompleta no servidor"}), 500
+
+    # URL da API do Abacate Pay (Verifique a documentação oficial para o endpoint exato de 'create checkout')
+    # Supondo estrutura padrão de APIs de pagamento:
+    api_url = "https://api.abacatepay.com/v1/checkout/sessions" 
+
+    payload = {
+        "products": ["prod_XWJeWTKMQpy52SCGPMQdgE23"], # Seu ID de produto
+        "customer": {
+            "email": user['email']
+        },
+        "metadata": {
+            "userId": user['uid'] # O pulo do gato: enviamos o ID para receber de volta no webhook
+        },
+        "successUrl": request.host_url + "app",
+        "cancelUrl": request.host_url + "plans"
+    }
+    
+    try:
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        response = requests.post(api_url, json=payload, headers=headers)
+        data = response.json()
+        
+        # Retorna a URL de pagamento gerada
+        return jsonify({"status": "success", "url": data.get("url")})
+    except Exception as e:
+        logger.error(f"Erro ao criar checkout: {e}")
+        return jsonify({"status": "error", "message": "Erro ao processar pagamento"}), 500
+
 # --- WEBHOOK ABACATE PAY ---
 @app.route('/webhook/abacate', methods=['POST'])
 def abacate_webhook():
     data = request.get_json()
     logger.info(f"Webhook Abacate recebido: {data}")
     
-    # Estrutura típica do Abacate Pay (ajuste conforme a documentação oficial se necessário)
-    # Geralmente enviam 'status' e dados do 'customer'
+    # Tenta pegar o UID do metadata (Muito mais seguro que email)
+    user_uid = data.get('metadata', {}).get('userId')
     customer_email = data.get('customer', {}).get('email')
     status = data.get('status') # ex: 'paid', 'completed'
     
     # Verifica se o status indica pagamento aprovado
-    if status in ['paid', 'completed'] and customer_email:
+    if status in ['paid', 'completed']:
         try:
-            # Busca usuário pelo email
-            user = auth.get_user_by_email(customer_email)
-            uid = user.uid
+            if user_uid:
+                # Busca direto pelo ID (Ideal)
+                user_ref = db.collection('users').document(user_uid)
+                uid_log = user_uid
+            elif customer_email:
+                # Fallback: Busca pelo email se não tiver metadata
+                user = auth.get_user_by_email(customer_email)
+                user_ref = db.collection('users').document(user.uid)
+                uid_log = user.uid
+            else:
+                return jsonify({"status": "ignored", "reason": "no_user_data"}), 200
             
             # Atualiza plano no Firestore
-            user_ref = db.collection('users').document(uid)
-            
             # Define plano PRO e dá créditos ilimitados (ou um número alto)
             user_ref.set({
                 'plan': 'pro',
@@ -477,7 +525,7 @@ def abacate_webhook():
                 'updated_at': datetime.datetime.now()
             }, merge=True)
             
-            logger.info(f"Plano PRO ativado para: {customer_email} ({uid})")
+            logger.info(f"Plano PRO ativado para: {uid_log}")
             
             return jsonify({"status": "success"}), 200
         except firebase_admin.auth.UserNotFoundError:

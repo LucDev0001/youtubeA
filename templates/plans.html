@@ -70,24 +70,46 @@
     <script src="/static/js/firebase-config.js"></script>
 
     <script>
-      // Link do seu produto no Abacate Pay
-      const ABACATE_CHECKOUT_URL =
-        "https://app.abacatepay.com/products/prod_XWJeWTKMQpy52SCGPMQdgE23";
+      document
+        .getElementById("btnSubscribe")
+        .addEventListener("click", async (e) => {
+          e.preventDefault();
+          const user = auth.currentUser;
 
-      document.getElementById("btnSubscribe").addEventListener("click", (e) => {
-        e.preventDefault();
-        const user = auth.currentUser;
+          if (!user) {
+            // Salva a intenção de compra para redirecionar depois do login (opcional)
+            window.location.href = "/login?redirect=plans";
+          } else {
+            const btn = document.getElementById("btnSubscribe");
+            btn.innerText = "Processando...";
+            btn.disabled = true;
 
-        if (!user) {
-          // Salva a intenção de compra para redirecionar depois do login (opcional)
-          window.location.href = "/login?redirect=plans";
-        } else {
-          // Tenta passar o e-mail via parâmetro (muitos gateways aceitam ?email=...)
-          // Isso ajuda a garantir que o webhook receba o e-mail correto
-          const checkoutUrl = `${ABACATE_CHECKOUT_URL}?customerEmail=${encodeURIComponent(user.email)}`;
-          window.open(checkoutUrl, "_blank");
-        }
-      });
+            try {
+              const token = await user.getIdToken();
+              const response = await fetch("/create_checkout", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              const data = await response.json();
+
+              if (data.status === "success" && data.url) {
+                window.location.href = data.url; // Redireciona para o pagamento
+              } else {
+                alert(
+                  "Erro ao iniciar pagamento: " +
+                    (data.message || "Tente novamente."),
+                );
+                btn.innerText = "Assinar Agora";
+                btn.disabled = false;
+              }
+            } catch (err) {
+              console.error(err);
+              alert("Erro de conexão.");
+              btn.innerText = "Assinar Agora";
+              btn.disabled = false;
+            }
+          }
+        });
     </script>
   </body>
 </html>
