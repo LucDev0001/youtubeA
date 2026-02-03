@@ -45,7 +45,10 @@
           </div>
           <h3 class="text-2xl font-bold mb-2">PRO</h3>
           <div class="text-4xl font-bold mb-6">
-            R$ 29,90<span class="text-lg text-gray-300 font-normal">/mês</span>
+            R$ {{ "%.2f"|format(price/100)|replace('.', ',') }}<span
+              class="text-lg text-gray-300 font-normal"
+              >/mês</span
+            >
           </div>
           <ul class="space-y-4 mb-8 flex-1 text-white">
             <li>✅ Envios Ilimitados</li>

@@ -427,7 +427,13 @@ def dashboard():
 
 @app.route('/plans')
 def plans_page():
-    return render_template('plans.html')
+    # Busca Preço Atual do Firestore para exibir no frontend
+    settings_ref = db.collection('settings').document('general')
+    settings_doc = settings_ref.get()
+    price = 2990
+    if settings_doc.exists:
+        price = settings_doc.to_dict().get('pro_price', 2990)
+    return render_template('plans.html', price=price)
 
 @app.route('/profile')
 def profile():
@@ -436,6 +442,10 @@ def profile():
 @app.route('/tips')
 def tips():
     return render_template('tips.html')
+
+@app.route('/thank-you')
+def thank_you_page():
+    return render_template('thankyou.html')
 
 @app.route('/privacy')
 def privacy():
@@ -589,8 +599,8 @@ def create_checkout():
                     "price": price # Usa o preço do banco de dados
                 }
             ],
-            return_url=request.host_url + "app",
-            completion_url=request.host_url + "app",
+            return_url=request.host_url + "thank-you",
+            completion_url=request.host_url + "thank-you",
             customer_id=customer_id
         )
         
@@ -622,6 +632,8 @@ def abacate_webhook():
 
     data = request.get_json()
     logger.info(f"Webhook Abacate recebido: {data}")
+    # Log extra para debug da estrutura
+    logger.info(f"Webhook Data Dump: {json.dumps(data)}")
     
     # 2. Corrija o Parsing do JSON (Estrutura Oficial)
     event = data.get('event')
