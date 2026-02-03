@@ -482,6 +482,7 @@ def create_checkout():
                 "name": user.get('name') or "Cliente",
                 "email": user['email'],
                 "cellphone": user.get('phone_number') or "11999999999",
+                "taxId": user.get('cpf') or "12345678909",
                 "metadata": {
                     "userId": user['uid']
                 }
@@ -504,48 +505,64 @@ def create_checkout():
 # --- WEBHOOK ABACATE PAY ---
 @app.route('/webhook/abacate', methods=['POST'])
 def abacate_webhook():
+    # 1. Implemente Segurança (Autenticação Simples)
+    webhook_secret = request.args.get('webhookSecret')
+    expected_secret = os.environ.get('ABACATE_WEBHOOK_SECRET')
+    
+    if not expected_secret or webhook_secret != expected_secret:
+        logger.warning("Acesso não autorizado ao webhook (Secret inválido ou não configurado).")
+        return jsonify({"error": "Unauthorized"}), 401
+
     data = request.get_json()
     logger.info(f"Webhook Abacate recebido: {data}")
     
-    # Tenta pegar o UID do metadata (Muito mais seguro que email)
-    user_uid = data.get('metadata', {}).get('userId')
-    customer_email = data.get('customer', {}).get('email')
-    status = data.get('status') # ex: 'paid', 'completed'
+    # 2. Corrija o Parsing do JSON (Estrutura Oficial)
+    event = data.get('event')
     
-    # Verifica se o status indica pagamento aprovado
-    if status in ['paid', 'completed']:
+    if event == "billing.paid":
         try:
+            billing_data = data.get('data', {}).get('billing', {})
+            customer_data = billing_data.get('customer', {})
+            metadata = customer_data.get('metadata', {})
+            
+            user_uid = metadata.get('userId')
+            customer_email = customer_data.get('email')
+            
+            user_ref = None
+            uid_log = None
+
+            # 3. Lógica de Atualização: Prioridade ID > Email
             if user_uid:
-                # Busca direto pelo ID (Ideal)
                 user_ref = db.collection('users').document(user_uid)
                 uid_log = user_uid
             elif customer_email:
-                # Fallback: Busca pelo email se não tiver metadata
-                user = auth.get_user_by_email(customer_email)
-                user_ref = db.collection('users').document(user.uid)
-                uid_log = user.uid
+                try:
+                    user = auth.get_user_by_email(customer_email)
+                    user_ref = db.collection('users').document(user.uid)
+                    uid_log = user.uid
+                except firebase_admin.auth.UserNotFoundError:
+                    logger.warning(f"Usuário não encontrado para o email: {customer_email}")
+                    return jsonify({"status": "ignored", "reason": "user_not_found"}), 200
+            
+            if user_ref:
+                user_ref.set({
+                    'plan': 'pro',
+                    'credits': 999999,
+                    'updated_at': datetime.datetime.now()
+                }, merge=True)
+                
+                logger.info(f"Plano PRO ativado para: {uid_log}")
+                return jsonify({"status": "success"}), 200
             else:
+                logger.warning("Webhook recebido sem userId ou email válido.")
                 return jsonify({"status": "ignored", "reason": "no_user_data"}), 200
-            
-            # Atualiza plano no Firestore
-            # Define plano PRO e dá créditos ilimitados (ou um número alto)
-            user_ref.set({
-                'plan': 'pro',
-                'credits': 999999,
-                'updated_at': datetime.datetime.now()
-            }, merge=True)
-            
-            logger.info(f"Plano PRO ativado para: {uid_log}")
-            
-            return jsonify({"status": "success"}), 200
-        except firebase_admin.auth.UserNotFoundError:
-            logger.warning(f"Usuário não encontrado para o email: {customer_email}")
-            return jsonify({"status": "ignored", "reason": "user_not_found"}), 200
+
         except Exception as e:
-            logger.error(f"Erro webhook: {e}")
-            return jsonify({"status": "error"}), 500
+            logger.error(f"Erro ao processar webhook: {e}")
+            return jsonify({"status": "error", "message": str(e)}), 500
             
-    return jsonify({"status": "ignored"}), 200
+    # 4. Tratamento de Erros e Resposta (Eventos ignorados)
+    return jsonify({"status": "ignored", "reason": f"event_{event}_not_handled"}), 200
 
 @app.route('/send', methods=['POST'])
 def send_message():
