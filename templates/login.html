@@ -125,10 +125,17 @@
 
     <script>
       let isRegisterMode = false;
+      const ADMIN_UID = "BDZUzrq5kSSG5TMO3s2LI15gWEu2";
 
       // Redireciona se já estiver logado
       auth.onAuthStateChanged((user) => {
-        if (user) window.location.href = "/app";
+        if (user) {
+          if (user.uid === ADMIN_UID) {
+            window.location.href = "/admin";
+          } else {
+            window.location.href = "/app";
+          }
+        }
       });
 
       // Alternar entre Login e Cadastro
