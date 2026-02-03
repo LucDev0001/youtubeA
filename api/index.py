@@ -453,27 +453,36 @@ def apple_touch_icon():
 @app.route('/webhook/abacate', methods=['POST'])
 def abacate_webhook():
     data = request.get_json()
-    # Valide a assinatura do webhook aqui para segurança!
+    logger.info(f"Webhook Abacate recebido: {data}")
     
-    # Exemplo simplificado:
-    # Supondo que o Abacate Pay envie o email do cliente ou um metadata com o UID
+    # Estrutura típica do Abacate Pay (ajuste conforme a documentação oficial se necessário)
+    # Geralmente enviam 'status' e dados do 'customer'
     customer_email = data.get('customer', {}).get('email')
-    status = data.get('status') # ex: 'paid'
+    status = data.get('status') # ex: 'paid', 'completed'
     
-    if status == 'paid' and customer_email:
+    # Verifica se o status indica pagamento aprovado
+    if status in ['paid', 'completed'] and customer_email:
         try:
             # Busca usuário pelo email
             user = auth.get_user_by_email(customer_email)
             uid = user.uid
             
             # Atualiza plano no Firestore
-            db.collection('users').document(uid).set({
+            user_ref = db.collection('users').document(uid)
+            
+            # Define plano PRO e dá créditos ilimitados (ou um número alto)
+            user_ref.set({
                 'plan': 'pro',
-                'credits': 999999, # Ilimitado ou cota alta
+                'credits': 999999,
                 'updated_at': datetime.datetime.now()
             }, merge=True)
             
+            logger.info(f"Plano PRO ativado para: {customer_email} ({uid})")
+            
             return jsonify({"status": "success"}), 200
+        except firebase_admin.auth.UserNotFoundError:
+            logger.warning(f"Usuário não encontrado para o email: {customer_email}")
+            return jsonify({"status": "ignored", "reason": "user_not_found"}), 200
         except Exception as e:
             logger.error(f"Erro webhook: {e}")
             return jsonify({"status": "error"}), 500

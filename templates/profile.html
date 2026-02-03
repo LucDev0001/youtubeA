@@ -99,6 +99,56 @@
               </div>
             </div>
 
+            <!-- Gerenciamento de Assinatura -->
+            <div
+              id="subscriptionSection"
+              class="hidden mt-6 pt-6 border-t border-gray-800"
+            >
+              <h3 class="text-lg font-bold mb-4">Assinatura</h3>
+              <div class="bg-[#121212] p-4 rounded-lg border border-gray-700">
+                <div
+                  class="flex flex-col md:flex-row justify-between items-center gap-4"
+                >
+                  <div>
+                    <p class="text-sm text-gray-400">
+                      Gerenciado por Abacate Pay
+                    </p>
+                    <p class="font-bold text-white">
+                      Renovação Automática Mensal
+                    </p>
+                  </div>
+                  <a
+                    href="https://abacatepay.com"
+                    target="_blank"
+                    class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded text-white text-sm border border-gray-600"
+                    >Acessar Portal de Pagamento</a
+                  >
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                  Para cancelar ou alterar forma de pagamento, verifique o
+                  e-mail de confirmação da assinatura enviado pelo Abacate Pay.
+                </p>
+              </div>
+            </div>
+
+            <div
+              id="upgradeSection"
+              class="hidden mt-6 pt-6 border-t border-gray-800"
+            >
+              <div
+                class="bg-red-900/10 p-4 rounded-lg border border-red-900/30 flex justify-between items-center"
+              >
+                <span class="text-red-500 font-bold"
+                  >Você está no plano Gratuito</span
+                >
+                <a
+                  href="/plans"
+                  class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-bold"
+                  >Fazer Upgrade</a
+                >
+              </div>
+            </div>
+
             <!-- Gráfico de Uso -->
             <div class="mt-8">
               <h3 class="text-lg font-bold mb-4">
@@ -183,6 +233,16 @@
 
             document.getElementById("profilePlan").innerText = plan;
             document.getElementById("profileCredits").innerText = credits;
+
+            if (data.plan === "pro") {
+              document
+                .getElementById("subscriptionSection")
+                .classList.remove("hidden");
+            } else {
+              document
+                .getElementById("upgradeSection")
+                .classList.remove("hidden");
+            }
 
             if (data.created_at) {
               const date = data.created_at.toDate
