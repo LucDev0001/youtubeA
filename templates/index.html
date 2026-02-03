@@ -115,6 +115,10 @@
           transform: translateX(0);
         }
       }
+      
+      /* Auth UI */
+      .hidden { display: none !important; }
+      .auth-container { max-width: 400px; margin: 50px auto; text-align: center; }
     </style>
   </head>
   <body
@@ -163,24 +167,16 @@
       >
         <span class="mr-4 text-xl">💬</span> Enviar Mensagem
       </a>
-      {% if logged_in %}
-      <div
-        class="mt-auto border-t border-yt-border dark:border-light-border pt-2.5"
+        style="display: none;"
       >
-        <a
-          href="/logout"
+        <button id="btnLogout"
           class="px-6 py-3 flex items-center text-yt-text dark:text-light-text no-underline text-[0.95rem] cursor-pointer hover:bg-yt-card-hover dark:hover:bg-light-card-hover"
-        >
-          <span class="mr-4 text-xl">🚪</span> Sair
-        </a>
+        >/button>
       </div>
-      {% endif %}
     </aside>
 
-    <main
       id="mainContent"
-      class="flex-1 ml-0 md:ml-[240px] transition-all duration-300 w-full flex justify-center pt-5"
-    >
+      class=
       <div
         class="bg-yt-bg dark:bg-light-bg p-8 pb-16 rounded-none shadow-none w-full max-w-[1200px] mx-auto relative"
       >
@@ -197,21 +193,38 @@
           Painel de Controle
         </h2>
 
-        {% if not logged_in %}
-        <div style="text-align: center">
-          <p>Faça login com sua conta Google para comentar.</p>
-          <a href="/login"
-            ><button
-              class="w-full p-3 bg-[#4285f4] hover:bg-[#357ae8] text-white rounded-[18px] uppercase font-medium transition-colors mt-4"
-              style="max-width: 300px"
-            >
-              Login com Google
-            </button></a
-          >
+        <!-- TELA DE LOGIN / CADASTRO (SAAS) -->
+        <div id="authScreen" class="auth-container">
+          <h3 class="text-xl mb-4 font-bold">Acesse sua conta</h3>
+          <input type="email" id="emailInput" placeholder="Seu E-mail" class="w-full p-3 mb-3 rounded bg-yt-input border border-yt-border text-white">
+          <input type="password" id="passInput" placeholder="Sua Senha" class="w-full p-3 mb-3 rounded bg-yt-input border border-yt-border text-white">
+"
+          <p class="mt-4 text-sm text-gray-500">Ao entrar, uma conta será criada automaticamente se não existir.</p>
         </div>
-        {% else %}
 
-        <div class="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-8">
+        <!-- PAINEL DO USUÁRIO (SÓ APARECE DEPOIS DE LOGAR) -->
+        <div id="dashboardScreen" class="hidden">
+            
+            <!-- Status do Plano e Conexão -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">-card-hover dark:bg-light-secondary rounded-xl border border-yt-border">
+                    <h4 class="font-bold mb-2">Seu Plano</h4>
+ i                  </a>
+                </div>
+                <div class="p-4 bg-yt-card-hover dark:bg-light-secondary rounded-xl border border-yt-border">
+                    <h4 class="font-bold mb-2">Canal YouTube</h4>
+  <div id="ytConnectionStatus">
+                            Conectar Canal
+                        </button>
+                    </div>
+                    <div id="ytConnected" class="hidden">
+                        <p class="text-green-500">✅ Conectado</p>
+                        <button onclick="connectYoutube()" class="text-xs text-gray-500 underline mt-1">Reconectar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ÁREA DO BOT (SÓ APARECE SE TIVER CANAL CONECTADO) -->
+            <div id="botArea" class="hidden grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-8">
           <!-- Coluna da Esquerda: Vídeos -->
           <div>
             <details
@@ -420,10 +433,9 @@
               <button type="submit" id="btnSubmit">Enviar</button>
             </form>
             <div id="result" class="result"></div>
-            <a href="/logout" class="logout-btn">🚪 Sair da Conta (Logout)</a>
           </div>
+            </div> <!-- Fim botArea -->
         </div>
-        {% endif %}
 
         <footer
           style="
@@ -438,12 +450,10 @@
           <div style="margin-bottom: 10px">
             <a
               href="/privacy"
-              style="
                 color: var(--text-muted);
                 margin-right: 15px;
                 text-decoration: none;
-                font-size: 0.8rem;
-              "
+t-size: 0.8rem;
               >Política de Privacidade</a
             >
             <a
@@ -471,7 +481,25 @@
       </div>
     </main>
 
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
     <script>
+      // --- CONFIGURAÇÃO FIREBASE (FRONTEND) ---
+      const firebaseConfig = {
+        apiKey: "SUA_API_KEY_AQUI", // Pegue no Console do Firebase
+        authDomain: "bot-99528.firebaseapp.com",
+        projectId: "bot-99528",
+        storageBucket: "bot-99528.firebasestorage.app",
+        messagingSenderId: "885510438555",
+        appId: "1:885510438555:web:f5cb8f019a15ec5761503e"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+
       const themeToggle = document.getElementById("themeToggle");
       const html = document.documentElement;
 
@@ -501,6 +529,94 @@
         sidebar.classList.toggle("open"); // Mobile behavior
         mainContent.classList.toggle("expanded");
       });
+
+      // --- LÓGICA DE AUTENTICAÇÃO SAAS ---
+      let currentUser = null;
+      let userToken = null;
+
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            currentUser = user;
+            userToken = await user.getIdToken();
+            
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('dashboardScreen').classList.remove('hidden');
+            document.getElementById('sidebarLogout').style.display = 'block';
+            
+            checkUserStatus();
+        } else {
+            currentUser = null;
+            userToken = null;
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('dashboardScreen').classList.add('hidden');
+            document.getElementById('sidebarLogout').style.display = 'none';
+        }
+      });
+
+      // Login/Cadastro Simples
+      document.getElementById('btnLogin').addEventListener('click', async () => {
+          const email = document.getElementById('emailInput').value;
+          const pass = document.getElementById('passInput').value;
+          try {
+              await auth.signInWithEmailAndPassword(email, pass);
+          } catch (e) {
+              if(e.code === 'auth/user-not-found') {
+                  // Cria conta se não existir
+                  try {
+                      await auth.createUserWithEmailAndPassword(email, pass);
+                      // Cria doc inicial no Firestore
+                      await db.collection('users').doc(auth.currentUser.uid).set({
+                          plan: 'free',
+                          credits: 10,
+                          created_at: new Date()
+                      });
+                  } catch (createErr) {
+                      alert("Erro ao criar conta: " + createErr.message);
+                  }
+              } else {
+                  alert("Erro: " + e.message);
+              }
+          }
+      });
+
+      document.getElementById('btnLogout').addEventListener('click', () => auth.signOut());
+
+      // Verifica status no Firestore
+      async function checkUserStatus() {
+          const doc = await db.collection('users').doc(currentUser.uid).get();
+          if (doc.exists) {
+              const data = doc.data();
+              
+              // Atualiza UI do Plano
+              const planName = data.plan === 'pro' ? 'PRO 💎' : 'Gratuito';
+              const credits = data.credits || 0;
+              document.getElementById('planStatus').innerText = `${planName} (${credits} créditos)`;
+              
+              if(data.plan !== 'pro') {
+                  document.getElementById('upgradeBtn').classList.remove('hidden');
+              }
+
+              // Atualiza UI do YouTube
+              if (data.youtube_connected) {
+                  document.getElementById('ytConnectionStatus').classList.add('hidden');
+                  document.getElementById('ytConnected').classList.remove('hidden');
+                  document.getElementById('botArea').classList.remove('hidden');
+                  loadRecentVideos(); // Carrega vídeos só se conectado
+              } else {
+                  document.getElementById('ytConnectionStatus').classList.remove('hidden');
+                  document.getElementById('ytConnected').classList.add('hidden');
+                  document.getElementById('botArea').classList.add('hidden');
+              }
+          }
+      }
+
+      function connectYoutube() {
+          // Redireciona para o backend passando o UID para salvar o token no lugar certo
+          window.location.href = `/connect_youtube?uid=${currentUser.uid}`;
+      }
+
+      // --- FIM LÓGICA AUTH ---
+
 
       let isRunning = false;
 
@@ -574,6 +690,7 @@
             try {
               const response = await fetch("/send", {
                 method: "POST",
+                headers: { 'Authorization': `Bearer ${userToken}` }, // Envia token do Firebase
                 body: formData,
               });
               const data = await response.json();
@@ -672,7 +789,9 @@
           if (currentChannelFilter) url += `&channelId=${currentChannelFilter}`;
           if (liveFilterActive) url += `&liveOnly=true`;
 
-          const res = await fetch(url);
+          const res = await fetch(url, {
+              headers: { 'Authorization': `Bearer ${userToken}` }
+          });
           const data = await res.json();
 
           currentNextPageToken = data.nextPageToken;
@@ -688,8 +807,7 @@
               if (vid.viewers) {
                 viewersHtml = `<span class="viewers-count">👥 ${vid.viewers} assistindo</span>`;
               }
-
-              let badgeClass = "badge-video";
+ideo";
               if (vid.type.includes("LIVE")) badgeClass = "badge-live";
               else if (vid.type.includes("BREVE"))
                 badgeClass = "badge-upcoming";
@@ -760,7 +878,9 @@
 
         try {
           const res = await fetch(
-            `/search_channels?q=${encodeURIComponent(query)}`,
+            `/search_channels?q=${encodeURIComponent(query)}`, {
+                headers: { 'Authorization': `Bearer ${userToken}` }
+            }
           );
           const data = await res.json();
 
@@ -778,8 +898,7 @@
               resultsDiv.appendChild(btn);
             });
           } else {
-            resultsDiv.innerHTML =
-              '<span style="color:#888; font-size:0.8rem;">Nenhum canal encontrado.</span>';
+            resultsDiv.innerHTML = um canal encontrado.</span>';
           }
         } catch (e) {
           console.error(e);
@@ -816,7 +935,7 @@
       }
 
       // Carrega a lista assim que a página abrir (se estiver logado)
-      loadRecentVideos();
+      // loadRecentVideos(); // Removido daqui, agora é chamado no checkUserStatus
     </script>
   </body>
 </html>

@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
-token.json
 client_secret.json
-venv/
-.env
+token.json
+firebase_service_account.json
+bot-*.json
+*.json

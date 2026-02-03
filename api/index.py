@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import datetime
 from flask import Flask, request, render_template, jsonify, session, redirect, url_for
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -8,6 +9,8 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.auth.exceptions import RefreshError
 from werkzeug.middleware.proxy_fix import ProxyFix
+import firebase_admin
+from firebase_admin import credentials, firestore, auth
 
 app = Flask(__name__, template_folder="../templates")
 
@@ -26,6 +29,20 @@ logging.basicConfig(level=logging.INFO)
 # Silencia avisos internos do googleapiclient sobre cache
 logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
 logger = logging.getLogger(__name__)
+
+# --- CONFIGURAÇÃO FIREBASE ADMIN (BACKEND) ---
+# Na Vercel, coloque o JSON da conta de serviço na variável FIREBASE_SERVICE_ACCOUNT
+firebase_creds_json = os.environ.get("FIREBASE_SERVICE_ACCOUNT")
+if firebase_creds_json:
+    cred = credentials.Certificate(json.loads(firebase_creds_json))
+    firebase_admin.initialize_app(cred)
+    db = firestore.client()
+else:
+    # Fallback para desenvolvimento local se o arquivo existir
+    if os.path.exists("firebase_service_account.json"):
+        cred = credentials.Certificate("firebase_service_account.json")
+        firebase_admin.initialize_app(cred)
+        db = firestore.client()
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
@@ -46,8 +63,41 @@ def credentials_to_dict(credentials):
         'scopes': credentials.scopes
     }
 
-@app.route('/login')
-def login():
+def get_user_from_token():
+    """Verifica o token do Firebase enviado no Header Authorization"""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None
+    token = auth_header.split("Bearer ")[1]
+    try:
+        decoded_token = auth.verify_id_token(token)
+        return decoded_token # Retorna dict com 'uid', 'email', etc.
+    except Exception as e:
+        logger.error(f"Erro auth firebase: {e}")
+        return None
+
+def get_youtube_service(uid):
+    """Recupera credenciais do Firestore e cria o serviço do YouTube"""
+    doc_ref = db.collection('users').document(uid)
+    doc = doc_ref.get()
+    if not doc.exists:
+        return None
+    
+    user_data = doc.to_dict()
+    yt_creds = user_data.get('youtube_credentials')
+    if not yt_creds:
+        return None
+        
+    creds = Credentials(**yt_creds)
+    return build("youtube", "v3", credentials=creds, cache_discovery=False)
+
+@app.route('/connect_youtube')
+def connect_youtube():
+    """Inicia o fluxo OAuth para conectar o canal ao SaaS"""
+    # O UID do usuário deve vir via query param ou sessão temporária antes do redirect
+    # Para simplificar, vamos assumir que o frontend manda o usuário para cá
+    # e depois no callback associamos.
+    
     if not CLIENT_SECRETS_JSON:
         return "Erro: CLIENT_SECRETS_JSON não configurado no servidor.", 500
 
@@ -67,6 +117,11 @@ def login():
         include_granted_scopes='true'
     )
     session['state'] = state
+    
+    # Guardamos o UID na sessão para saber quem está conectando
+    user_uid = request.args.get('uid')
+    if user_uid: session['connect_uid'] = user_uid
+    
     return redirect(authorization_url)
 
 @app.route('/oauth2callback')
@@ -74,6 +129,8 @@ def oauth2callback():
     state = session.get('state')
     if not state:
         return redirect(url_for('login'))
+    
+    user_uid = session.get('connect_uid')
 
     client_config = json.loads(CLIENT_SECRETS_JSON)
     
@@ -88,9 +145,16 @@ def oauth2callback():
         # Troca o código de autorização por credenciais
         flow.fetch_token(authorization_response=request.url)
         
-        # Salva as credenciais na sessão do usuário
-        session['credentials'] = credentials_to_dict(flow.credentials)
-        return redirect(url_for('home'))
+        creds_dict = credentials_to_dict(flow.credentials)
+        
+        # SALVA NO FIRESTORE
+        if user_uid:
+            db.collection('users').document(user_uid).set({
+                'youtube_credentials': creds_dict,
+                'youtube_connected': True
+            }, merge=True)
+            
+        return redirect(url_for('home')) # Redireciona para o painel
     except Exception as e:
         logger.error(f"Erro no callback OAuth: {e}")
         return f"Erro ao fazer login: {str(e)} <br><a href='/'>Tentar novamente</a>"
@@ -112,8 +176,8 @@ def get_live_chat_id(youtube, video_id):
 
 @app.route('/get_video_info', methods=['POST'])
 def get_video_info():
-    if 'credentials' not in session:
-        return jsonify({"status": "error", "message": "Faça login primeiro."}), 401
+    user = get_user_from_token()
+    if not user: return jsonify({"status": "error", "message": "Não autenticado."}), 401
     
     data = request.get_json()
     video_id = data.get('video_id')
@@ -121,8 +185,8 @@ def get_video_info():
     if not video_id:
         return jsonify({"status": "error", "message": "ID inválido."}), 400
 
-    creds = Credentials(**session['credentials'])
-    youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
+    youtube = get_youtube_service(user['uid'])
+    if not youtube: return jsonify({"status": "error", "message": "Canal YouTube não conectado."}), 400
 
     try:
         response = youtube.videos().list(
@@ -149,15 +213,15 @@ def get_video_info():
 
 @app.route('/search_channels', methods=['GET'])
 def search_channels():
-    if 'credentials' not in session:
-        return jsonify({"status": "error", "message": "Faça login primeiro."}), 401
+    user = get_user_from_token()
+    if not user: return jsonify({"status": "error", "message": "Não autenticado."}), 401
     
     query = request.args.get('q')
     if not query:
         return jsonify({"status": "success", "channels": []})
 
-    creds = Credentials(**session['credentials'])
-    youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
+    youtube = get_youtube_service(user['uid'])
+    if not youtube: return jsonify({"status": "error", "message": "Canal YouTube não conectado."}), 400
 
     try:
         resp = youtube.search().list(
@@ -180,11 +244,11 @@ def search_channels():
 
 @app.route('/get_recent_videos', methods=['GET'])
 def get_recent_videos():
-    if 'credentials' not in session:
-        return jsonify({"status": "error", "message": "Faça login primeiro."}), 401
+    user = get_user_from_token()
+    if not user: return jsonify({"status": "error", "message": "Não autenticado."}), 401
 
-    creds = Credentials(**session['credentials'])
-    youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
+    youtube = get_youtube_service(user['uid'])
+    if not youtube: return jsonify({"status": "error", "message": "Canal YouTube não conectado."}), 400
     
     page_token = request.args.get('pageToken')
     channel_filter = request.args.get('channelId')
@@ -324,8 +388,8 @@ def get_recent_videos():
 
 @app.route('/')
 def home():
-    is_logged_in = 'credentials' in session
-    return render_template('index.html', logged_in=is_logged_in)
+    # O frontend agora controla o estado via Firebase JS SDK
+    return render_template('index.html')
 
 @app.route('/privacy')
 def privacy():
@@ -335,8 +399,43 @@ def privacy():
 def terms():
     return render_template('terms.html')
 
+# --- WEBHOOK ABACATE PAY ---
+@app.route('/webhook/abacate', methods=['POST'])
+def abacate_webhook():
+    data = request.get_json()
+    # Valide a assinatura do webhook aqui para segurança!
+    
+    # Exemplo simplificado:
+    # Supondo que o Abacate Pay envie o email do cliente ou um metadata com o UID
+    customer_email = data.get('customer', {}).get('email')
+    status = data.get('status') # ex: 'paid'
+    
+    if status == 'paid' and customer_email:
+        try:
+            # Busca usuário pelo email
+            user = auth.get_user_by_email(customer_email)
+            uid = user.uid
+            
+            # Atualiza plano no Firestore
+            db.collection('users').document(uid).set({
+                'plan': 'pro',
+                'credits': 999999, # Ilimitado ou cota alta
+                'updated_at': datetime.datetime.now()
+            }, merge=True)
+            
+            return jsonify({"status": "success"}), 200
+        except Exception as e:
+            logger.error(f"Erro webhook: {e}")
+            return jsonify({"status": "error"}), 500
+            
+    return jsonify({"status": "ignored"}), 200
+
 @app.route('/send', methods=['POST'])
 def send_message():
+    user = get_user_from_token()
+    if not user: return jsonify({"status": "error", "message": "Não autenticado."}), 401
+    uid = user['uid']
+
     # Tenta obter dados do JSON (se enviado via fetch/axios) ou do Form Data
     data = request.get_json(silent=True) or request.form
 
@@ -357,11 +456,24 @@ def send_message():
     if not video_id or not message:
         return jsonify({"status": "error", "message": "Faltam dados."}), 400
 
-    if 'credentials' not in session:
-        return jsonify({"status": "error", "message": "Usuário não logado."}), 401
+    # --- VERIFICAÇÃO DE PLANO/CRÉDITOS ---
+    user_ref = db.collection('users').document(uid)
+    user_doc = user_ref.get()
+    user_data = user_doc.to_dict() if user_doc.exists else {}
+    
+    plan = user_data.get('plan', 'free')
+    credits = user_data.get('credits', 10) # Plano Free começa com 10 créditos
+    
+    if plan == 'free' and credits <= 0:
+        return jsonify({
+            "status": "error", 
+            "message": "Limite gratuito atingido. Faça upgrade para continuar!"
+        }), 402 # Payment Required
 
-    creds = Credentials(**session['credentials'])
-    youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
+    # --- CONECTA AO YOUTUBE ---
+    youtube = get_youtube_service(uid)
+    if not youtube:
+        return jsonify({"status": "error", "message": "Canal não conectado."}), 400
 
     try:
         if msg_type == 'live':
@@ -379,6 +491,10 @@ def send_message():
                     }
                 }
             ).execute()
+            
+            # Deduz crédito se for free
+            if plan == 'free':
+                user_ref.update({'credits': firestore.Increment(-1)})
             return jsonify({"status": "success", "message": "Mensagem enviada na Live!"})
 
         else: # Comentário Normal
@@ -393,6 +509,10 @@ def send_message():
                     }
                 }
             ).execute()
+            
+            # Deduz crédito se for free
+            if plan == 'free':
+                user_ref.update({'credits': firestore.Increment(-1)})
             return jsonify({"status": "success", "message": "Comentário postado!"})
 
     except HttpError as e:

@@ -4,3 +4,4 @@ google-auth-oauthlib==1.2.0
 google-api-python-client==2.108.0
 Werkzeug==3.0.1
 requests==2.31.0
+firebase-admin==6.2.0
