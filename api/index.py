@@ -490,8 +490,16 @@ def create_checkout():
         
         return jsonify({"status": "success", "url": billing.url})
     except Exception as e:
-        logger.error(f"Erro ao criar checkout: {e}")
-        return jsonify({"status": "error", "message": f"Erro no servidor: {str(e)}"}), 500
+        error_msg = str(e)
+        # Tenta extrair detalhes do erro da SDK se disponível para debug
+        if hasattr(e, 'response'):
+             try:
+                 error_msg += f" | Detalhes: {e.response.text}"
+             except:
+                 pass
+
+        logger.error(f"Erro ao criar checkout: {error_msg}")
+        return jsonify({"status": "error", "message": f"Erro no servidor: {error_msg}"}), 500
 
 # --- WEBHOOK ABACATE PAY ---
 @app.route('/webhook/abacate', methods=['POST'])
