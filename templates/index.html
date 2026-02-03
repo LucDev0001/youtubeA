@@ -115,10 +115,16 @@
           transform: translateX(0);
         }
       }
-      
+
       /* Auth UI */
-      .hidden { display: none !important; }
-      .auth-container { max-width: 400px; margin: 50px auto; text-align: center; }
+      .hidden {
+        display: none !important;
+      }
+      .auth-container {
+        max-width: 400px;
+        margin: 50px auto;
+        text-align: center;
+      }
     </style>
   </head>
   <body
@@ -167,16 +173,24 @@
       >
         <span class="mr-4 text-xl">💬</span> Enviar Mensagem
       </a>
-        style="display: none;"
+      <div
+        id="sidebarLogout"
+        class="mt-auto border-t border-yt-border dark:border-light-border pt-2.5"
+        style="display: none"
       >
-        <button id="btnLogout"
+        <button
+          id="btnLogout"
           class="px-6 py-3 flex items-center text-yt-text dark:text-light-text no-underline text-[0.95rem] cursor-pointer hover:bg-yt-card-hover dark:hover:bg-light-card-hover"
-        >/button>
+        >
+          <span class="mr-4 text-xl">🚪</span> Sair
+        </button>
       </div>
     </aside>
 
+    <main
       id="mainContent"
-      class=
+      class="flex-1 ml-0 md:ml-[240px] transition-all duration-300 w-full flex justify-center pt-5"
+    >
       <div
         class="bg-yt-bg dark:bg-light-bg p-8 pb-16 rounded-none shadow-none w-full max-w-[1200px] mx-auto relative"
       >
@@ -196,273 +210,306 @@
         <!-- TELA DE LOGIN / CADASTRO (SAAS) -->
         <div id="authScreen" class="auth-container">
           <h3 class="text-xl mb-4 font-bold">Acesse sua conta</h3>
-          <input type="email" id="emailInput" placeholder="Seu E-mail" class="w-full p-3 mb-3 rounded bg-yt-input border border-yt-border text-white">
-          <input type="password" id="passInput" placeholder="Sua Senha" class="w-full p-3 mb-3 rounded bg-yt-input border border-yt-border text-white">
-"
-          <p class="mt-4 text-sm text-gray-500">Ao entrar, uma conta será criada automaticamente se não existir.</p>
+          <input
+            type="email"
+            id="emailInput"
+            placeholder="Seu E-mail"
+            class="w-full p-3 mb-3 rounded bg-yt-input border border-yt-border text-white"
+          />
+          <input
+            type="password"
+            id="passInput"
+            placeholder="Sua Senha"
+            class="w-full p-3 mb-3 rounded bg-yt-input border border-yt-border text-white"
+          />
+          <button
+            id="btnLogin"
+            class="w-full p-3 bg-[#4285f4] hover:bg-[#357ae8] text-white rounded-[18px] uppercase font-medium transition-colors mt-2"
+          >
+            Entrar / Criar Conta
+          </button>
+          <p class="mt-4 text-sm text-gray-500">
+            Ao entrar, uma conta será criada automaticamente se não existir.
+          </p>
         </div>
 
         <!-- PAINEL DO USUÁRIO (SÓ APARECE DEPOIS DE LOGAR) -->
         <div id="dashboardScreen" class="hidden">
-            
-            <!-- Status do Plano e Conexão -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">-card-hover dark:bg-light-secondary rounded-xl border border-yt-border">
-                    <h4 class="font-bold mb-2">Seu Plano</h4>
- i                  </a>
-                </div>
-                <div class="p-4 bg-yt-card-hover dark:bg-light-secondary rounded-xl border border-yt-border">
-                    <h4 class="font-bold mb-2">Canal YouTube</h4>
-  <div id="ytConnectionStatus">
-                            Conectar Canal
-                        </button>
-                    </div>
-                    <div id="ytConnected" class="hidden">
-                        <p class="text-green-500">✅ Conectado</p>
-                        <button onclick="connectYoutube()" class="text-xs text-gray-500 underline mt-1">Reconectar</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ÁREA DO BOT (SÓ APARECE SE TIVER CANAL CONECTADO) -->
-            <div id="botArea" class="hidden grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-8">
-          <!-- Coluna da Esquerda: Vídeos -->
-          <div>
-            <details
-              class="mb-6 bg-yt-card-hover dark:bg-light-secondary p-2.5 rounded-xl border border-yt-border dark:border-light-border"
+          <!-- Status do Plano e Conexão -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div
+              class="p-4 bg-yt-card-hover dark:bg-light-secondary rounded-xl border border-yt-border"
             >
-              <summary style="cursor: pointer; font-weight: bold; color: #ccc">
-                ❓ Dicas de Uso (Clique para abrir)
-              </summary>
-              <ul
-                class="text-left mt-2.5 text-sm text-[#aaaaaa] dark:text-[#606060] pl-5"
+              <h4 class="font-bold mb-2">Seu Plano</h4>
+              <p id="planStatus" class="text-lg">Carregando...</p>
+              <a
+                href="#"
+                id="upgradeBtn"
+                class="hidden inline-block mt-2 text-sm text-yt-red font-bold hover:underline"
               >
-                <li>
-                  <strong>ID do Vídeo:</strong> É o código no final do link. Ex:
-                  youtube.com/watch?v=<b>dQw4w9WgXcQ</b>
-                </li>
-                <li>
-                  <strong>Lives:</strong> O bot detecta automaticamente se é
-                  Live ou Vídeo ao buscar o ID.
-                </li>
-                <li>
-                  <strong>Templates:</strong> Use as mensagens prontas abaixo
-                  para agilizar.
-                </li>
-              </ul>
-            </details>
-
-            <div class="video-list-container">
-              <div class="video-list-title">
-                <span id="listTitle">Novidades das suas Inscrições</span>
-                <div class="search-box">
-                  <button
-                    onclick="loadRecentVideos()"
-                    title="Atualizar Lista"
-                    class="btn-sm btn-secondary"
-                    style="margin-right: 5px"
-                  >
-                    🔄
-                  </button>
-                  <button
-                    id="liveFilterBtn"
-                    onclick="toggleLiveFilter()"
-                    title="Apenas Lives"
-                    class="btn-sm btn-secondary"
-                    style="margin-right: 5px"
-                  >
-                    🔴
-                  </button>
-                  <input
-                    type="text"
-                    id="channelSearchInput"
-                    placeholder="Pesquisar canal..."
-                    onkeypress="if (event.key === 'Enter') searchChannels();"
-                  />
-                  <button onclick="searchChannels()" class="btn-sm">🔍</button>
-                  <button
-                    id="clearFilterBtn"
-                    onclick="clearFilter()"
-                    class="btn-sm"
-                    style="background: #555; display: none"
-                  >
-                    ❌
-                  </button>
-                </div>
-              </div>
-
-              <div
-                id="channelSearchResults"
-                style="
-                  display: none;
-                  margin-bottom: 15px;
-                  gap: 10px;
-                  overflow-x: auto;
-                  padding-bottom: 5px;
-                "
-              >
-                <!-- Resultados da pesquisa de canais aparecem aqui -->
-              </div>
-              <div id="recentVideos" class="video-list">
-                <p style="font-size: 0.8rem; color: #666">Carregando...</p>
-              </div>
-              <div style="text-align: center; margin-top: 15px">
+                🚀 Fazer Upgrade para PRO
+              </a>
+            </div>
+            <div
+              class="p-4 bg-yt-card-hover dark:bg-light-secondary rounded-xl border border-yt-border"
+            >
+              <h4 class="font-bold mb-2">Canal YouTube</h4>
+              <div id="ytConnectionStatus">
+                <p class="text-yellow-500 mb-2">⚠️ Não conectado</p>
                 <button
-                  id="loadMoreBtn"
-                  onclick="loadMore()"
-                  class="btn-sm btn-secondary"
-                  style="padding: 8px 20px; display: none"
+                  onclick="connectYoutube()"
+                  class="px-4 py-2 bg-red-600 text-white rounded text-sm"
                 >
-                  Carregar Mais
+                  Conectar Canal
+                </button>
+              </div>
+              <div id="ytConnected" class="hidden">
+                <p class="text-green-500">✅ Conectado</p>
+                <button
+                  onclick="connectYoutube()"
+                  class="text-xs text-gray-500 underline mt-1"
+                >
+                  Reconectar
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- Coluna da Direita: Formulário -->
-          <div class="form-section">
-            <form id="botForm">
-              <label>ID do Vídeo / Live</label>
-              <input
-                type="text"
-                name="video_id"
-                id="video_id"
-                placeholder="Ex: dQw4w9WgXcQ"
-                required
-              />
-
-              <div id="videoPreview" class="video-preview">
-                <img id="thumb" src="" alt="Thumbnail" />
-                <h4 id="vidTitle">Titulo do Vídeo</h4>
-                <p id="vidChannel">Canal</p>
-              </div>
-
-              <label>Tipo de Envio</label>
-              <select name="type">
-                <option value="live">Chat ao Vivo (Live)</option>
-                <option value="comment">Comentário em Vídeo</option>
-              </select>
-
-              <label>Mensagens Rápidas (Templates)</label>
-              <select
-                id="msgTemplate"
-                onchange="
-                  if (this.value)
-                    document.getElementsByName('message')[0].value = this.value;
-                "
+          <!-- ÁREA DO BOT (SÓ APARECE SE TIVER CANAL CONECTADO) -->
+          <div
+            id="botArea"
+            class="hidden grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-8"
+          >
+            <!-- Coluna da Esquerda: Vídeos -->
+            <div>
+              <details
+                class="mb-6 bg-yt-card-hover dark:bg-light-secondary p-2.5 rounded-xl border border-yt-border dark:border-light-border"
               >
-                <option value="">-- Selecione ou Digite --</option>
-                <option value="Ótimo conteúdo! Parabéns pelo vídeo. 👏">
-                  Elogio Padrão
-                </option>
-                <option value="Salve! Acompanhando a live aqui. 🚀">
-                  Live - Salve
-                </option>
-                <option value="Muito bom! Obrigado por compartilhar.">
-                  Agradecimento
-                </option>
-                <option value="Qual o link mencionado no vídeo?">
-                  Pergunta Link
-                </option>
-              </select>
+                <summary
+                  style="cursor: pointer; font-weight: bold; color: #ccc"
+                >
+                  ❓ Dicas de Uso (Clique para abrir)
+                </summary>
+                <ul
+                  class="text-left mt-2.5 text-sm text-[#aaaaaa] dark:text-[#606060] pl-5"
+                >
+                  <li>
+                    <strong>ID do Vídeo:</strong> É o código no final do link.
+                    Ex: youtube.com/watch?v=<b>dQw4w9WgXcQ</b>
+                  </li>
+                  <li>
+                    <strong>Lives:</strong> O bot detecta automaticamente se é
+                    Live ou Vídeo ao buscar o ID.
+                  </li>
+                  <li>
+                    <strong>Templates:</strong> Use as mensagens prontas abaixo
+                    para agilizar.
+                  </li>
+                </ul>
+              </details>
 
-              <label>Mensagem</label>
-              <textarea
-                name="message"
-                rows="3"
-                placeholder="Digite sua mensagem..."
-                required
-              ></textarea>
-
-              <!-- Opções de Automação -->
-              <div class="auto-options">
-                <label class="auto-header">
-                  <input
-                    type="checkbox"
-                    id="autoMode"
-                    style="width: auto; margin-right: 10px; margin-bottom: 0"
-                  />
-                  <span style="font-size: 0.9rem"
-                    >🔄 Ativar Repetição Automática</span
-                  >
-                </label>
-                <div id="autoOptions" class="auto-details">
-                  <div style="display: flex; gap: 10px">
-                    <div style="flex: 1">
-                      <label
-                        style="
-                          font-size: 0.8rem;
-                          margin-bottom: 5px;
-                          color: var(--text-muted);
-                        "
-                        >Qtd. Vezes</label
-                      >
-                      <input
-                        type="number"
-                        id="repeatCount"
-                        value="5"
-                        min="2"
-                        max="100"
-                        style="margin-bottom: 0"
-                      />
-                    </div>
-                    <div style="flex: 1">
-                      <label
-                        style="
-                          font-size: 0.8rem;
-                          margin-bottom: 5px;
-                          color: var(--text-muted);
-                        "
-                        >Intervalo (segundos)</label
-                      >
-                      <input
-                        type="number"
-                        id="repeatInterval"
-                        value="60"
-                        min="5"
-                        style="margin-bottom: 0"
-                      />
-                    </div>
+              <div class="video-list-container">
+                <div class="video-list-title">
+                  <span id="listTitle">Novidades das suas Inscrições</span>
+                  <div class="search-box">
+                    <button
+                      onclick="loadRecentVideos()"
+                      title="Atualizar Lista"
+                      class="btn-sm btn-secondary"
+                      style="margin-right: 5px"
+                    >
+                      🔄
+                    </button>
+                    <button
+                      id="liveFilterBtn"
+                      onclick="toggleLiveFilter()"
+                      title="Apenas Lives"
+                      class="btn-sm btn-secondary"
+                      style="margin-right: 5px"
+                    >
+                      🔴
+                    </button>
+                    <input
+                      type="text"
+                      id="channelSearchInput"
+                      placeholder="Pesquisar canal..."
+                      onkeypress="if (event.key === 'Enter') searchChannels();"
+                    />
+                    <button onclick="searchChannels()" class="btn-sm">
+                      🔍
+                    </button>
+                    <button
+                      id="clearFilterBtn"
+                      onclick="clearFilter()"
+                      class="btn-sm"
+                      style="background: #555; display: none"
+                    >
+                      ❌
+                    </button>
                   </div>
-                  <p class="warning-text">
-                    ⚠️ Intervalos muito curtos podem causar bloqueio temporário
-                    pelo YouTube.
-                  </p>
+                </div>
+
+                <div
+                  id="channelSearchResults"
+                  style="
+                    display: none;
+                    margin-bottom: 15px;
+                    gap: 10px;
+                    overflow-x: auto;
+                    padding-bottom: 5px;
+                  "
+                >
+                  <!-- Resultados da pesquisa de canais aparecem aqui -->
+                </div>
+                <div id="recentVideos" class="video-list">
+                  <p style="font-size: 0.8rem; color: #666">Carregando...</p>
+                </div>
+                <div style="text-align: center; margin-top: 15px">
+                  <button
+                    id="loadMoreBtn"
+                    onclick="loadMore()"
+                    class="btn-sm btn-secondary"
+                    style="padding: 8px 20px; display: none"
+                  >
+                    Carregar Mais
+                  </button>
                 </div>
               </div>
+            </div>
 
-              <button type="submit" id="btnSubmit">Enviar</button>
-            </form>
-            <div id="result" class="result"></div>
+            <!-- Coluna da Direita: Formulário -->
+            <div class="form-section">
+              <form id="botForm">
+                <label>ID do Vídeo / Live</label>
+                <input
+                  type="text"
+                  name="video_id"
+                  id="video_id"
+                  placeholder="Ex: dQw4w9WgXcQ"
+                  required
+                />
+
+                <div id="videoPreview" class="video-preview">
+                  <img id="thumb" src="" alt="Thumbnail" />
+                  <h4 id="vidTitle">Titulo do Vídeo</h4>
+                  <p id="vidChannel">Canal</p>
+                </div>
+
+                <label>Tipo de Envio</label>
+                <select name="type">
+                  <option value="live">Chat ao Vivo (Live)</option>
+                  <option value="comment">Comentário em Vídeo</option>
+                </select>
+
+                <label>Mensagens Rápidas (Templates)</label>
+                <select
+                  id="msgTemplate"
+                  onchange="
+                    if (this.value)
+                      document.getElementsByName('message')[0].value =
+                        this.value;
+                  "
+                >
+                  <option value="">-- Selecione ou Digite --</option>
+                  <option value="Ótimo conteúdo! Parabéns pelo vídeo. 👏">
+                    Elogio Padrão
+                  </option>
+                  <option value="Salve! Acompanhando a live aqui. 🚀">
+                    Live - Salve
+                  </option>
+                  <option value="Muito bom! Obrigado por compartilhar.">
+                    Agradecimento
+                  </option>
+                  <option value="Qual o link mencionado no vídeo?">
+                    Pergunta Link
+                  </option>
+                </select>
+
+                <label>Mensagem</label>
+                <textarea
+                  name="message"
+                  rows="3"
+                  placeholder="Digite sua mensagem..."
+                  required
+                ></textarea>
+
+                <!-- Opções de Automação -->
+                <div class="auto-options">
+                  <label class="auto-header">
+                    <input
+                      type="checkbox"
+                      id="autoMode"
+                      style="width: auto; margin-right: 10px; margin-bottom: 0"
+                    />
+                    <span style="font-size: 0.9rem"
+                      >🔄 Ativar Repetição Automática</span
+                    >
+                  </label>
+                  <div id="autoOptions" class="auto-details">
+                    <div style="display: flex; gap: 10px">
+                      <div style="flex: 1">
+                        <label
+                          style="
+                            font-size: 0.8rem;
+                            margin-bottom: 5px;
+                            color: var(--text-muted);
+                          "
+                          >Qtd. Vezes</label
+                        >
+                        <input
+                          type="number"
+                          id="repeatCount"
+                          value="5"
+                          min="2"
+                          max="100"
+                          style="margin-bottom: 0"
+                        />
+                      </div>
+                      <div style="flex: 1">
+                        <label
+                          style="
+                            font-size: 0.8rem;
+                            margin-bottom: 5px;
+                            color: var(--text-muted);
+                          "
+                          >Intervalo (segundos)</label
+                        >
+                        <input
+                          type="number"
+                          id="repeatInterval"
+                          value="60"
+                          min="5"
+                          style="margin-bottom: 0"
+                        />
+                      </div>
+                    </div>
+                    <p class="warning-text">
+                      ⚠️ Intervalos muito curtos podem causar bloqueio
+                      temporário pelo YouTube.
+                    </p>
+                  </div>
+                </div>
+
+                <button type="submit" id="btnSubmit">Enviar</button>
+              </form>
+              <div id="result" class="result"></div>
+            </div>
           </div>
-            </div> <!-- Fim botArea -->
+          <!-- Fim botArea -->
         </div>
 
         <footer
-          style="
-            margin-top: 2rem;
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border-color);
-            padding-top: 1rem;
-          "
+          class="mt-8 text-center text-xs text-gray-500 border-t border-yt-border dark:border-light-border pt-4"
         >
           <div style="margin-bottom: 10px">
             <a
               href="/privacy"
-                color: var(--text-muted);
-                margin-right: 15px;
-                text-decoration: none;
-t-size: 0.8rem;
+              class="text-gray-500 mr-4 no-underline text-xs hover:underline"
               >Política de Privacidade</a
             >
             <a
               href="/terms"
-              style="
-                color: var(--text-muted);
-                text-decoration: none;
-                font-size: 0.8rem;
-              "
+              class="text-gray-500 no-underline text-xs hover:underline"
               >Termos de Uso</a
             >
           </div>
@@ -494,7 +541,7 @@ t-size: 0.8rem;
         projectId: "bot-99528",
         storageBucket: "bot-99528.firebasestorage.app",
         messagingSenderId: "885510438555",
-        appId: "1:885510438555:web:f5cb8f019a15ec5761503e"
+        appId: "1:885510438555:web:f5cb8f019a15ec5761503e",
       };
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
@@ -536,87 +583,95 @@ t-size: 0.8rem;
 
       auth.onAuthStateChanged(async (user) => {
         if (user) {
-            currentUser = user;
-            userToken = await user.getIdToken();
-            
-            document.getElementById('authScreen').classList.add('hidden');
-            document.getElementById('dashboardScreen').classList.remove('hidden');
-            document.getElementById('sidebarLogout').style.display = 'block';
-            
-            checkUserStatus();
+          currentUser = user;
+          userToken = await user.getIdToken();
+
+          document.getElementById("authScreen").classList.add("hidden");
+          document.getElementById("dashboardScreen").classList.remove("hidden");
+          document.getElementById("sidebarLogout").style.display = "block";
+
+          checkUserStatus();
         } else {
-            currentUser = null;
-            userToken = null;
-            document.getElementById('authScreen').classList.remove('hidden');
-            document.getElementById('dashboardScreen').classList.add('hidden');
-            document.getElementById('sidebarLogout').style.display = 'none';
+          currentUser = null;
+          userToken = null;
+          document.getElementById("authScreen").classList.remove("hidden");
+          document.getElementById("dashboardScreen").classList.add("hidden");
+          document.getElementById("sidebarLogout").style.display = "none";
         }
       });
 
       // Login/Cadastro Simples
-      document.getElementById('btnLogin').addEventListener('click', async () => {
-          const email = document.getElementById('emailInput').value;
-          const pass = document.getElementById('passInput').value;
+      document
+        .getElementById("btnLogin")
+        .addEventListener("click", async () => {
+          const email = document.getElementById("emailInput").value;
+          const pass = document.getElementById("passInput").value;
           try {
-              await auth.signInWithEmailAndPassword(email, pass);
+            await auth.signInWithEmailAndPassword(email, pass);
           } catch (e) {
-              if(e.code === 'auth/user-not-found') {
-                  // Cria conta se não existir
-                  try {
-                      await auth.createUserWithEmailAndPassword(email, pass);
-                      // Cria doc inicial no Firestore
-                      await db.collection('users').doc(auth.currentUser.uid).set({
-                          plan: 'free',
-                          credits: 10,
-                          created_at: new Date()
-                      });
-                  } catch (createErr) {
-                      alert("Erro ao criar conta: " + createErr.message);
-                  }
-              } else {
-                  alert("Erro: " + e.message);
+            if (e.code === "auth/user-not-found") {
+              // Cria conta se não existir
+              try {
+                await auth.createUserWithEmailAndPassword(email, pass);
+                // Cria doc inicial no Firestore
+                await db.collection("users").doc(auth.currentUser.uid).set({
+                  plan: "free",
+                  credits: 10,
+                  created_at: new Date(),
+                });
+              } catch (createErr) {
+                alert("Erro ao criar conta: " + createErr.message);
               }
+            } else {
+              alert("Erro: " + e.message);
+            }
           }
-      });
+        });
 
-      document.getElementById('btnLogout').addEventListener('click', () => auth.signOut());
+      document
+        .getElementById("btnLogout")
+        .addEventListener("click", () => auth.signOut());
 
       // Verifica status no Firestore
       async function checkUserStatus() {
-          const doc = await db.collection('users').doc(currentUser.uid).get();
-          if (doc.exists) {
-              const data = doc.data();
-              
-              // Atualiza UI do Plano
-              const planName = data.plan === 'pro' ? 'PRO 💎' : 'Gratuito';
-              const credits = data.credits || 0;
-              document.getElementById('planStatus').innerText = `${planName} (${credits} créditos)`;
-              
-              if(data.plan !== 'pro') {
-                  document.getElementById('upgradeBtn').classList.remove('hidden');
-              }
+        const doc = await db.collection("users").doc(currentUser.uid).get();
+        if (doc.exists) {
+          const data = doc.data();
 
-              // Atualiza UI do YouTube
-              if (data.youtube_connected) {
-                  document.getElementById('ytConnectionStatus').classList.add('hidden');
-                  document.getElementById('ytConnected').classList.remove('hidden');
-                  document.getElementById('botArea').classList.remove('hidden');
-                  loadRecentVideos(); // Carrega vídeos só se conectado
-              } else {
-                  document.getElementById('ytConnectionStatus').classList.remove('hidden');
-                  document.getElementById('ytConnected').classList.add('hidden');
-                  document.getElementById('botArea').classList.add('hidden');
-              }
+          // Atualiza UI do Plano
+          const planName = data.plan === "pro" ? "PRO 💎" : "Gratuito";
+          const credits = data.credits || 0;
+          document.getElementById("planStatus").innerText =
+            `${planName} (${credits} créditos)`;
+
+          if (data.plan !== "pro") {
+            document.getElementById("upgradeBtn").classList.remove("hidden");
           }
+
+          // Atualiza UI do YouTube
+          if (data.youtube_connected) {
+            document
+              .getElementById("ytConnectionStatus")
+              .classList.add("hidden");
+            document.getElementById("ytConnected").classList.remove("hidden");
+            document.getElementById("botArea").classList.remove("hidden");
+            loadRecentVideos(); // Carrega vídeos só se conectado
+          } else {
+            document
+              .getElementById("ytConnectionStatus")
+              .classList.remove("hidden");
+            document.getElementById("ytConnected").classList.add("hidden");
+            document.getElementById("botArea").classList.add("hidden");
+          }
+        }
       }
 
       function connectYoutube() {
-          // Redireciona para o backend passando o UID para salvar o token no lugar certo
-          window.location.href = `/connect_youtube?uid=${currentUser.uid}`;
+        // Redireciona para o backend passando o UID para salvar o token no lugar certo
+        window.location.href = `/connect_youtube?uid=${currentUser.uid}`;
       }
 
       // --- FIM LÓGICA AUTH ---
-
 
       let isRunning = false;
 
@@ -690,7 +745,7 @@ t-size: 0.8rem;
             try {
               const response = await fetch("/send", {
                 method: "POST",
-                headers: { 'Authorization': `Bearer ${userToken}` }, // Envia token do Firebase
+                headers: { Authorization: `Bearer ${userToken}` }, // Envia token do Firebase
                 body: formData,
               });
               const data = await response.json();
@@ -790,7 +845,7 @@ t-size: 0.8rem;
           if (liveFilterActive) url += `&liveOnly=true`;
 
           const res = await fetch(url, {
-              headers: { 'Authorization': `Bearer ${userToken}` }
+            headers: { Authorization: `Bearer ${userToken}` },
           });
           const data = await res.json();
 
@@ -805,15 +860,18 @@ t-size: 0.8rem;
             data.videos.forEach((vid) => {
               let viewersHtml = "";
               if (vid.viewers) {
-                viewersHtml = `<span class="viewers-count">👥 ${vid.viewers} assistindo</span>`;
+                viewersHtml = `<span class="text-xs text-[#ff5252] block mt-1 font-bold">👥 ${vid.viewers} assistindo</span>`;
               }
-ideo";
-              if (vid.type.includes("LIVE")) badgeClass = "badge-live";
+
+              let badgeClass = "bg-[#00695c] text-white";
+              if (vid.type.includes("LIVE"))
+                badgeClass = "bg-[#b71c1c] text-white";
               else if (vid.type.includes("BREVE"))
-                badgeClass = "badge-upcoming";
+                badgeClass = "bg-[#e65100] text-white";
 
               const div = document.createElement("div");
-              div.className = "video-card";
+              div.className =
+                "bg-yt-card dark:bg-light-card rounded-none overflow-hidden cursor-pointer transition-transform duration-200 relative hover:scale-105 hover:z-10 hover:bg-yt-card-hover dark:hover:bg-light-card-hover";
               div.onclick = function () {
                 const input = document.getElementById("video_id");
                 input.value = vid.id;
@@ -821,14 +879,14 @@ ideo";
                 input.blur(); // Dispara o preview
               };
               div.innerHTML = `
-                        <img src="${vid.thumbnail}" alt="Thumb">
-                        <div><span class="badge ${badgeClass}">${vid.type}</span></div>
-                        <div class="video-card-content">
-                        <p title="${vid.title}">${vid.title}</p>
-                        <span class="channel-name">${vid.channel}</span>
+                        <img src="${vid.thumbnail}" alt="Thumb" class="w-full h-[110px] object-cover block rounded-lg">
+                        <div><span class="text-[0.6rem] px-1 py-0.5 rounded absolute top-1.5 right-1.5 font-bold shadow-md ${badgeClass}">${vid.type}</span></div>
+                        <div class="py-2">
+                        <p title="${vid.title}" class="text-[0.85rem] m-0 text-yt-text dark:text-light-text leading-tight line-clamp-2 overflow-hidden">${vid.title}</p>
+                        <span class="block text-xs text-[#aaaaaa] dark:text-[#606060] mt-1.5">${vid.channel}</span>
                         ${viewersHtml}
                         </div>
-                        <button class="copy-btn" onclick="event.stopPropagation(); copyToClipboard('${vid.id}')" title="Copiar ID">📋</button>
+                        <button class="absolute bottom-1.5 right-1.5 bg-black/70 text-white border-none rounded px-2 py-1 text-[0.7rem] cursor-pointer z-20" onclick="event.stopPropagation(); copyToClipboard('${vid.id}')" title="Copiar ID">📋</button>
                     `;
               container.appendChild(div);
             });
@@ -878,9 +936,10 @@ ideo";
 
         try {
           const res = await fetch(
-            `/search_channels?q=${encodeURIComponent(query)}`, {
-                headers: { 'Authorization': `Bearer ${userToken}` }
-            }
+            `/search_channels?q=${encodeURIComponent(query)}`,
+            {
+              headers: { Authorization: `Bearer ${userToken}` },
+            },
           );
           const data = await res.json();
 
@@ -898,7 +957,8 @@ ideo";
               resultsDiv.appendChild(btn);
             });
           } else {
-            resultsDiv.innerHTML = um canal encontrado.</span>';
+            resultsDiv.innerHTML =
+              '<span style="color:#888; font-size:0.8rem;">Nenhum canal encontrado.</span>';
           }
         } catch (e) {
           console.error(e);
