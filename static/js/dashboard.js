@@ -249,6 +249,75 @@ async function loadRecentVideos(pageToken = "", append = false) {
   }
 }
 
+// --- Busca de Canais ---
+async function searchChannels() {
+  const query = document.getElementById("channelSearchInput").value;
+  if (!query) return;
+
+  const resultsDiv = document.getElementById("channelSearchResults");
+  resultsDiv.classList.remove("hidden");
+  resultsDiv.classList.add("flex");
+  resultsDiv.innerHTML =
+    '<span class="text-gray-500 text-xs">Buscando...</span>';
+
+  try {
+    const res = await fetch(`/search_channels?q=${encodeURIComponent(query)}`, {
+      headers: { Authorization: `Bearer ${userToken}` },
+    });
+    const data = await res.json();
+
+    resultsDiv.innerHTML = "";
+    if (data.status === "success" && data.channels.length > 0) {
+      data.channels.forEach((ch) => {
+        const btn = document.createElement("div");
+        btn.className =
+          "flex items-center gap-2 bg-gray-800 hover:bg-gray-700 p-2 rounded cursor-pointer border border-gray-700 transition";
+        btn.onclick = () => selectChannelFilter(ch.id, ch.title);
+        btn.innerHTML = `
+                    <img src="${ch.thumbnail}" class="w-6 h-6 rounded-full">
+                    <span class="text-xs text-white font-medium truncate max-w-[100px]">${ch.title}</span>
+                `;
+        resultsDiv.appendChild(btn);
+      });
+    } else {
+      resultsDiv.innerHTML =
+        '<span class="text-gray-500 text-xs">Nenhum canal encontrado.</span>';
+    }
+  } catch (e) {
+    console.error(e);
+    resultsDiv.innerHTML =
+      '<span class="text-red-500 text-xs">Erro na busca.</span>';
+  }
+}
+
+function selectChannelFilter(id, name) {
+  currentChannelFilter = id;
+  const titleEl = document.getElementById("listTitle");
+  titleEl.innerText = `Vídeos de: ${name}`;
+  titleEl.classList.remove("hidden");
+
+  document.getElementById("channelSearchResults").classList.add("hidden");
+  document.getElementById("clearFilterBtn").classList.remove("hidden");
+  document.getElementById("channelSearchInput").value = "";
+
+  loadRecentVideos();
+}
+
+function clearFilter() {
+  currentChannelFilter = null;
+  document.getElementById("listTitle").classList.add("hidden");
+  document.getElementById("clearFilterBtn").classList.add("hidden");
+  document.getElementById("channelSearchResults").classList.add("hidden");
+  loadRecentVideos();
+}
+
+// Enter na busca
+document
+  .getElementById("channelSearchInput")
+  ?.addEventListener("keypress", function (e) {
+    if (e.key === "Enter") searchChannels();
+  });
+
 // Sidebar Toggle
 const menuToggle = document.getElementById("menuToggle");
 const sidebar = document.getElementById("sidebar");
@@ -257,7 +326,20 @@ const mainContent = document.getElementById("mainContent");
 if (menuToggle) {
   menuToggle.addEventListener("click", () => {
     sidebar.classList.toggle("-translate-x-full");
-    // Ajuste para desktop se necessário, mas o Tailwind lida bem com classes responsivas
+
+    // Overlay para mobile
+    const overlay = document.getElementById("sidebarOverlay");
+    if (overlay) overlay.classList.toggle("hidden");
+  });
+}
+
+// Auto Mode Toggle
+const autoModeCheckbox = document.getElementById("autoMode");
+if (autoModeCheckbox) {
+  autoModeCheckbox.addEventListener("change", function () {
+    const options = document.getElementById("autoOptions");
+    if (this.checked) options.classList.remove("hidden");
+    else options.classList.add("hidden");
   });
 }
 

@@ -31,14 +31,14 @@
       <!-- Sidebar -->
       <aside
         id="sidebar"
-        class="w-64 bg-yt-card dark:bg-light-card border-r border-gray-800 dark:border-gray-200 flex flex-col fixed md:relative z-20 h-full transition-transform transform -translate-x-full md:translate-x-0"
+        class="w-64 bg-yt-card dark:bg-light-card border-r border-gray-800 dark:border-gray-200 flex flex-col fixed md:relative z-50 h-full transition-transform transform -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none"
       >
         <div class="p-6 text-xl font-bold flex items-center gap-2">
           <span class="text-red-600">▶</span> Painel
         </div>
         <nav class="flex-1 px-4 space-y-2">
           <a
-            href="#"
+            href="/app"
             class="block px-4 py-3 rounded-lg bg-red-600 text-white font-medium"
             >📺 Dashboard</a
           >
@@ -46,6 +46,11 @@
             href="/plans"
             class="block px-4 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition"
             >💎 Planos</a
+          >
+          <a
+            href="/profile"
+            class="block px-4 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition"
+            >👤 Perfil</a
           >
         </nav>
         <div class="p-4 border-t border-gray-800 dark:border-gray-200">
@@ -60,8 +65,14 @@
 
       <!-- Main Content -->
       <main
-        class="flex-1 flex flex-col h-screen overflow-hidden relative w-full"
+        class="flex-1 flex flex-col h-screen overflow-hidden relative w-full bg-yt-bg dark:bg-light-bg"
       >
+        <!-- Overlay para mobile quando sidebar aberta -->
+        <div
+          id="sidebarOverlay"
+          class="fixed inset-0 bg-black/50 z-40 hidden md:hidden glass"
+        ></div>
+
         <!-- Topbar -->
         <header
           class="h-16 bg-yt-card dark:bg-light-card border-b border-gray-800 dark:border-gray-200 flex items-center justify-between px-6"
@@ -110,14 +121,54 @@
           <div id="botArea" class="hidden grid lg:grid-cols-3 gap-8">
             <!-- Left: Video Feed -->
             <div class="lg:col-span-2">
-              <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">Feed de Vídeos</h2>
-                <button
-                  onclick="loadRecentVideos()"
-                  class="p-2 bg-gray-800 rounded-full hover:bg-gray-700"
-                >
-                  🔄
-                </button>
+              <div
+                class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4"
+              >
+                <h2 class="text-xl font-bold flex items-center gap-2">
+                  Feed de Vídeos
+                  <button
+                    onclick="loadRecentVideos()"
+                    class="text-sm p-1.5 bg-gray-800 rounded-full hover:bg-gray-700"
+                    title="Atualizar"
+                  >
+                    🔄
+                  </button>
+                </h2>
+
+                <!-- Barra de Pesquisa de Canais -->
+                <div class="flex w-full sm:w-auto gap-2">
+                  <input
+                    type="text"
+                    id="channelSearchInput"
+                    placeholder="Buscar canal..."
+                    class="w-full sm:w-48 p-2 bg-[#121212] border border-gray-700 rounded text-sm text-white focus:border-red-600 outline-none"
+                  />
+                  <button
+                    onclick="searchChannels()"
+                    class="p-2 bg-gray-800 hover:bg-gray-700 rounded text-white"
+                  >
+                    🔍
+                  </button>
+                  <button
+                    id="clearFilterBtn"
+                    onclick="clearFilter()"
+                    class="hidden p-2 bg-red-900 hover:bg-red-800 rounded text-white text-xs"
+                  >
+                    ❌
+                  </button>
+                </div>
+              </div>
+
+              <!-- Resultados da Pesquisa de Canais -->
+              <div
+                id="channelSearchResults"
+                class="hidden flex-wrap gap-3 mb-4 p-3 bg-gray-900/50 rounded-lg border border-gray-800"
+              >
+                <!-- Injetado via JS -->
+              </div>
+
+              <div id="listTitle" class="text-sm text-gray-400 mb-2 hidden">
+                Mostrando resultados filtrados
               </div>
               <div
                 id="recentVideos"

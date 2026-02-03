@@ -402,6 +402,10 @@ def dashboard():
 def plans_page():
     return render_template('plans.html')
 
+@app.route('/profile')
+def profile():
+    return render_template('profile.html')
+
 @app.route('/privacy')
 def privacy():
     return render_template('privacy.html')
