@@ -467,7 +467,7 @@ def create_checkout():
     # Payload atualizado para o endpoint de billing
     payload = {
         "frequency": "MONTHLY", # Assinatura mensal
-        "methods": ["PIX", "CREDIT_CARD"],
+        "methods": ["PIX"],
         "products": [
             {
                 "name": "Plano PRO - YouTube Growth Bot",
