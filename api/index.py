@@ -137,7 +137,8 @@ def connect_youtube():
     
     authorization_url, state = flow.authorization_url(
         access_type='offline',
-        include_granted_scopes='true'
+        include_granted_scopes='true',
+        prompt='consent select_account'
     )
     session['state'] = state
     
@@ -172,13 +173,29 @@ def oauth2callback():
         # Troca o código de autorização por credenciais
         flow.fetch_token(authorization_response=request.url)
         
+        # Obtém informações do canal conectado para salvar no banco
+        try:
+            youtube_service = build("youtube", "v3", credentials=flow.credentials, cache_discovery=False)
+            channels_response = youtube_service.channels().list(part="snippet", mine=True).execute()
+            channel_info = {}
+            if channels_response.get("items"):
+                snippet = channels_response["items"][0]["snippet"]
+                channel_info = {
+                    "title": snippet["title"],
+                    "thumbnail": snippet["thumbnails"]["default"]["url"]
+                }
+        except Exception as e:
+            logger.error(f"Erro ao obter detalhes do canal: {e}")
+            channel_info = {}
+
         creds_dict = credentials_to_dict(flow.credentials)
         
         # SALVA NO FIRESTORE
         if user_uid:
             db.collection('users').document(user_uid).set({
                 'youtube_credentials': creds_dict,
-                'youtube_connected': True
+                'youtube_connected': True,
+                'youtube_channel': channel_info
             }, merge=True)
             
         return redirect(url_for('home')) # Redireciona para o painel
@@ -659,8 +676,11 @@ def abacate_webhook():
             # CENÁRIO A: Customer é um objeto completo (Dicionário)
             if isinstance(customer, dict):
                 metadata = customer.get('metadata', {})
-                user_uid = metadata.get('userId')
-                customer_email = customer.get('email')
+                # Tenta pegar userId do metadata, se existir
+                user_uid = metadata.get('userId') 
+                
+                # O email pode estar na raiz do customer ou dentro do metadata (conforme log recebido)
+                customer_email = customer.get('email') or metadata.get('email')
             
             # CENÁRIO B: Customer é apenas um ID (String) - BUSCA NA API
             elif isinstance(customer, str):

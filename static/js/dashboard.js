@@ -45,7 +45,20 @@ async function checkUserStatus() {
     // Atualiza UI do YouTube
     if (data.youtube_connected) {
       document.getElementById("ytConnectionStatus").classList.add("hidden");
-      document.getElementById("ytConnected").classList.remove("hidden");
+      const ytConnected = document.getElementById("ytConnected");
+      ytConnected.classList.remove("hidden");
+
+      // Mostra qual canal está conectado
+      if (data.youtube_channel && data.youtube_channel.title) {
+        ytConnected.innerHTML = `
+            <p class="text-green-500 font-bold">✅ Conectado</p>
+            <div class="flex items-center gap-2 mt-2 bg-gray-100 p-2 rounded border border-gray-200">
+                ${data.youtube_channel.thumbnail ? `<img src="${data.youtube_channel.thumbnail}" class="w-8 h-8 rounded-full">` : ""}
+                <span class="text-sm font-bold text-gray-700">${data.youtube_channel.title}</span>
+            </div>
+          `;
+      }
+
       document.getElementById("botArea").classList.remove("hidden");
     } else {
       document.getElementById("ytConnectionStatus").classList.remove("hidden");
