@@ -461,20 +461,28 @@ def create_checkout():
     if not api_key:
         return jsonify({"status": "error", "message": "Configuração de pagamento incompleta no servidor"}), 500
 
-    # URL da API do Abacate Pay (Verifique a documentação oficial para o endpoint exato de 'create checkout')
-    # Supondo estrutura padrão de APIs de pagamento:
-    api_url = "https://api.abacatepay.com/v1/checkout/sessions" 
+    # URL da API do Abacate Pay (Atualizado conforme documentação)
+    api_url = "https://api.abacatepay.com/v1/billing/create"
 
+    # Payload atualizado para o endpoint de billing
     payload = {
-        "products": ["prod_XWJeWTKMQpy52SCGPMQdgE23"], # Seu ID de produto
+        "frequency": "MONTHLY", # Assinatura mensal
+        "methods": ["PIX", "CREDIT_CARD"],
+        "products": [
+            {
+                "name": "Plano PRO - YouTube Growth Bot",
+                "quantity": 1,
+                "price": 2990 # Valor em centavos (R$ 29,90)
+            }
+        ],
+        "returnUrl": request.host_url + "app",
+        "completionUrl": request.host_url + "app",
         "customer": {
-            "email": user['email']
-        },
-        "metadata": {
-            "userId": user['uid'] # O pulo do gato: enviamos o ID para receber de volta no webhook
-        },
-        "successUrl": request.host_url + "app",
-        "cancelUrl": request.host_url + "plans"
+            "email": user['email'],
+            "metadata": {
+                "userId": user['uid'] # Enviamos o ID para receber de volta no webhook
+            }
+        }
     }
     
     try:
@@ -496,8 +504,16 @@ def create_checkout():
 
         data = response.json()
         
+        # Verifica se houve erro lógico na API (mesmo com status 200)
+        if "error" in data:
+             return jsonify({"status": "error", "message": f"Erro API: {data['error']}"}), 400
+        
         # Retorna a URL de pagamento gerada
+        # Tenta pegar a URL em 'url' ou dentro de 'data.url' dependendo da resposta
         url = data.get("url")
+        if not url and "data" in data and isinstance(data["data"], dict):
+            url = data["data"].get("url")
+            
         if not url:
             return jsonify({"status": "error", "message": "URL de pagamento não encontrada na resposta da API"}), 500
             
