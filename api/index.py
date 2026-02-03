@@ -472,6 +472,7 @@ def create_checkout():
                 {
                     "externalId": "plan-pro",
                     "name": "Plano PRO - YouTube Growth Bot",
+                    "description": "Acesso ilimitado ao bot e recursos premium",
                     "quantity": 1,
                     "price": 2990
                 }
