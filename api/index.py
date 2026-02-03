@@ -466,7 +466,7 @@ def create_checkout():
 
     # Payload atualizado para o endpoint de billing
     payload = {
-        "frequency": "MONTHLY", # Assinatura mensal
+        "frequency": "ONE_TIME", # Alterado para ONE_TIME para corrigir erro 422
         "methods": ["PIX"],
         "products": [
             {
