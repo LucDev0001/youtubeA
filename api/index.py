@@ -463,7 +463,7 @@ def create_checkout():
         return jsonify({"status": "error", "message": "Configuração de pagamento incompleta no servidor"}), 500
 
     try:
-        client = abacatepay.Client(api_key)
+        client = abacatepay.AbacatePay(api_key)
 
         billing = client.billing.create(
             frequency="ONE_TIME",
