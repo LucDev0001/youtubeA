@@ -517,7 +517,9 @@ def create_checkout():
             customer_id=customer_id
         )
         
-        return jsonify({"status": "success", "url": billing.data.url})
+        logger.info(f"Billing criado: {billing}")
+        
+        return jsonify({"status": "success", "url": billing.url})
     except Exception as e:
         error_msg = str(e)
         # Tenta extrair detalhes do erro da SDK se disponível para debug
