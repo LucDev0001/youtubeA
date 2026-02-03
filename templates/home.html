@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,31 +7,27 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
-        darkMode: "class",
         theme: {
           extend: {
             colors: {
               yt: {
-                bg: "#0f0f0f",
-                card: "#1e1e1e",
-                text: "#f1f1f1",
+                bg: "#f3f4f6" /* Cinza claro */,
+                card: "#ffffff" /* Branco */,
+                text: "#1f2937" /* Cinza escuro */,
                 red: "#cc0000",
               },
-              light: { bg: "#f9f9f9", card: "#ffffff", text: "#0f0f0f" },
             },
           },
         },
       };
     </script>
   </head>
-  <body
-    class="bg-yt-bg text-yt-text dark:bg-light-bg dark:text-light-text transition-colors duration-200 font-sans overflow-hidden"
-  >
+  <body class="bg-yt-bg text-yt-text font-sans overflow-hidden">
     <div class="flex h-screen">
       <!-- Sidebar -->
       <aside
         id="sidebar"
-        class="w-64 bg-yt-card dark:bg-light-card border-r border-gray-800 dark:border-gray-200 flex flex-col fixed md:relative z-50 h-full transition-transform transform -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none"
+        class="w-64 bg-yt-card border-r border-gray-200 flex flex-col fixed md:relative z-50 h-full transition-transform transform -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none"
       >
         <div class="p-6 text-xl font-bold flex items-center gap-2">
           <span class="text-red-600">▶</span> Painel
@@ -44,16 +40,21 @@
           >
           <a
             href="/plans"
-            class="block px-4 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition"
+            class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition"
             >💎 Planos</a
           >
           <a
+            href="/tips"
+            class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition"
+            >💡 Dicas</a
+          >
+          <a
             href="/profile"
-            class="block px-4 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition"
+            class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition"
             >👤 Perfil</a
           >
         </nav>
-        <div class="p-4 border-t border-gray-800 dark:border-gray-200">
+        <div class="p-4 border-t border-gray-200">
           <button
             onclick="logout()"
             class="w-full py-2 text-gray-400 hover:text-white text-sm"
@@ -65,7 +66,7 @@
 
       <!-- Main Content -->
       <main
-        class="flex-1 flex flex-col h-screen overflow-hidden relative w-full bg-yt-bg dark:bg-light-bg"
+        class="flex-1 flex flex-col h-screen overflow-hidden relative w-full bg-yt-bg"
       >
         <!-- Overlay para mobile quando sidebar aberta -->
         <div
@@ -75,7 +76,7 @@
 
         <!-- Topbar -->
         <header
-          class="h-16 bg-yt-card dark:bg-light-card border-b border-gray-800 dark:border-gray-200 flex items-center justify-between px-6"
+          class="h-16 bg-yt-card border-b border-gray-200 flex items-center justify-between px-6"
         >
           <button id="menuToggle" class="md:hidden text-2xl">☰</button>
           <div class="flex items-center gap-4">
@@ -88,7 +89,6 @@
               class="hidden text-xs bg-yellow-600 text-white px-2 py-1 rounded"
               >UPGRADE</a
             >
-            <button id="themeToggle" class="text-xl">☀️</button>
           </div>
         </header>
 
@@ -97,7 +97,7 @@
           <!-- Status Cards -->
           <div class="grid md:grid-cols-2 gap-6 mb-8">
             <div
-              class="p-6 bg-yt-card dark:bg-light-card rounded-xl border border-gray-800 dark:border-gray-200"
+              class="p-6 bg-yt-card rounded-xl border border-gray-200 shadow-sm"
             >
               <h3 class="font-bold mb-2">Conexão YouTube</h3>
               <div id="ytConnectionStatus">
@@ -141,18 +141,18 @@
                     type="text"
                     id="channelSearchInput"
                     placeholder="Buscar canal..."
-                    class="w-full sm:w-48 p-2 bg-[#121212] border border-gray-700 rounded text-sm text-white focus:border-red-600 outline-none"
+                    class="w-full sm:w-48 p-2 bg-gray-50 border border-gray-300 rounded text-sm text-gray-800 focus:border-red-600 outline-none"
                   />
                   <button
                     onclick="searchChannels()"
-                    class="p-2 bg-gray-800 hover:bg-gray-700 rounded text-white"
+                    class="p-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-700"
                   >
                     🔍
                   </button>
                   <button
                     id="clearFilterBtn"
                     onclick="clearFilter()"
-                    class="hidden p-2 bg-red-900 hover:bg-red-800 rounded text-white text-xs"
+                    class="hidden p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs"
                   >
                     ❌
                   </button>
@@ -162,7 +162,7 @@
               <!-- Resultados da Pesquisa de Canais -->
               <div
                 id="channelSearchResults"
-                class="hidden flex-wrap gap-3 mb-4 p-3 bg-gray-900/50 rounded-lg border border-gray-800"
+                class="hidden flex-wrap gap-3 mb-4 p-3 bg-white rounded-lg border border-gray-200"
               >
                 <!-- Injetado via JS -->
               </div>
@@ -180,7 +180,7 @@
                 <button
                   id="loadMoreBtn"
                   onclick="loadRecentVideos(currentNextPageToken, true)"
-                  class="hidden px-6 py-2 bg-gray-800 rounded-full text-sm"
+                  class="hidden px-6 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300 rounded-full text-sm"
                 >
                   Carregar Mais
                 </button>
@@ -190,7 +190,7 @@
             <!-- Right: Action Form -->
             <div class="lg:col-span-1">
               <div
-                class="bg-yt-card dark:bg-light-card p-6 rounded-xl border border-gray-800 dark:border-gray-200 sticky top-6"
+                class="bg-yt-card p-6 rounded-xl border border-gray-200 shadow-sm sticky top-6"
               >
                 <h3 class="font-bold mb-4">Painel de Ação</h3>
                 <form id="botForm" class="space-y-4">
@@ -202,7 +202,7 @@
                       type="text"
                       name="video_id"
                       id="video_id"
-                      class="w-full p-2 bg-[#121212] border border-gray-700 rounded text-white"
+                      class="w-full p-2 bg-gray-50 border border-gray-300 rounded text-gray-800"
                       placeholder="Ex: dQw4w9WgXcQ"
                       required
                     />
@@ -223,7 +223,7 @@
                     >
                     <select
                       name="type"
-                      class="w-full p-2 bg-[#121212] border border-gray-700 rounded text-white"
+                      class="w-full p-2 bg-gray-50 border border-gray-300 rounded text-gray-800"
                     >
                       <option value="live">Chat ao Vivo (Live)</option>
                       <option value="comment">Comentário</option>
@@ -237,12 +237,12 @@
                     <textarea
                       name="message"
                       rows="3"
-                      class="w-full p-2 bg-[#121212] border border-gray-700 rounded text-white"
+                      class="w-full p-2 bg-gray-50 border border-gray-300 rounded text-gray-800"
                       required
                     ></textarea>
                   </div>
 
-                  <div class="bg-gray-900 p-3 rounded border border-gray-800">
+                  <div class="bg-gray-50 p-3 rounded border border-gray-200">
                     <label
                       class="flex items-center gap-2 text-sm cursor-pointer"
                     >
@@ -259,7 +259,7 @@
                           type="number"
                           id="repeatCount"
                           value="5"
-                          class="w-full p-1 bg-black border border-gray-700 rounded text-white"
+                          class="w-full p-1 bg-white border border-gray-300 rounded text-gray-800"
                         />
                       </div>
                       <div>
@@ -268,7 +268,7 @@
                           type="number"
                           id="repeatInterval"
                           value="60"
-                          class="w-full p-1 bg-black border border-gray-700 rounded text-white"
+                          class="w-full p-1 bg-white border border-gray-300 rounded text-gray-800"
                         />
                       </div>
                     </div>
@@ -288,6 +288,56 @@
           </div>
         </div>
       </main>
+    </div>
+
+    <!-- ONBOARDING MODAL -->
+    <div
+      id="onboardingModal"
+      class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/60 backdrop-blur-sm"
+    >
+      <div
+        class="bg-white text-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden"
+      >
+        <div class="bg-red-600 p-6 text-white text-center">
+          <h2 class="text-2xl font-bold">Bem-vindo ao YouTube Bot! 🚀</h2>
+          <p class="text-red-100">Seu assistente pessoal para engajamento.</p>
+        </div>
+        <div class="p-8 space-y-6">
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <h3 class="font-bold text-lg">Como usar:</h3>
+              <ul class="list-disc pl-5 text-sm text-gray-600 space-y-1">
+                <li>Conecte seu canal no botão vermelho.</li>
+                <li>Veja os vídeos recentes das suas inscrições.</li>
+                <li>Clique em um vídeo para carregar o ID.</li>
+                <li>Escreva sua mensagem e envie!</li>
+              </ul>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <h3 class="font-bold text-lg mb-2">Dica PRO 💎</h3>
+              <p class="text-sm text-gray-600">
+                Usuários PRO podem ativar o
+                <strong>Modo Automático</strong> para enviar mensagens repetidas
+                em Lives ou comentar em vários vídeos sem parar.
+              </p>
+              <a
+                href="/plans"
+                class="block mt-3 text-center text-xs font-bold text-red-600 hover:underline"
+                >VER PLANOS</a
+              >
+            </div>
+          </div>
+
+          <div class="text-center pt-4">
+            <button
+              onclick="closeOnboarding()"
+              class="px-8 py-3 bg-gray-900 text-white rounded-full font-bold hover:bg-gray-800 transition"
+            >
+              Entendi, vamos começar!
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Scripts -->

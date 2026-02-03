@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import datetime
+import random
 from flask import Flask, request, render_template, jsonify, session, redirect, url_for, send_from_directory
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -46,12 +47,25 @@ else:
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
-# Tenta carregar as credenciais do cliente (Client ID/Secret)
-# Na Vercel, coloque o conteúdo do client_secret.json na variável CLIENT_SECRETS_JSON
-CLIENT_SECRETS_JSON = os.environ.get("CLIENT_SECRETS_JSON")
-if not CLIENT_SECRETS_JSON and os.path.exists("client_secret.json"):
+# --- ROTAÇÃO DE CHAVES API ---
+# Carrega uma lista de credenciais ou um único arquivo.
+# Para rotação, a variável de ambiente CLIENT_SECRETS_JSON pode ser uma lista de JSONs strings: ['{...}', '{...}']
+raw_secrets = os.environ.get("CLIENT_SECRETS_JSON")
+CLIENT_SECRETS_LIST = []
+
+if raw_secrets:
+    try:
+        # Tenta carregar como lista de JSONs
+        parsed = json.loads(raw_secrets)
+        if isinstance(parsed, list):
+            CLIENT_SECRETS_LIST = [json.dumps(p) if isinstance(p, dict) else p for p in parsed]
+        else:
+            CLIENT_SECRETS_LIST = [raw_secrets]
+    except json.JSONDecodeError:
+        CLIENT_SECRETS_LIST = [raw_secrets]
+elif os.path.exists("client_secret.json"):
     with open("client_secret.json", "r") as f:
-        CLIENT_SECRETS_JSON = f.read()
+        CLIENT_SECRETS_LIST = [f.read()]
 
 def credentials_to_dict(credentials):
     return {
@@ -98,10 +112,15 @@ def connect_youtube():
     # Para simplificar, vamos assumir que o frontend manda o usuário para cá
     # e depois no callback associamos.
     
-    if not CLIENT_SECRETS_JSON:
+    if not CLIENT_SECRETS_LIST:
         return "Erro: CLIENT_SECRETS_JSON não configurado no servidor.", 500
 
-    client_config = json.loads(CLIENT_SECRETS_JSON)
+    # ROTAÇÃO: Escolhe um projeto aleatório para iniciar o fluxo
+    selected_secret = random.choice(CLIENT_SECRETS_LIST)
+    
+    # Salva qual secret foi usado na sessão para usar no callback
+    session['selected_secret_config'] = selected_secret
+    client_config = json.loads(selected_secret)
     
     # Cria o fluxo OAuth
     flow = Flow.from_client_config(
@@ -131,8 +150,12 @@ def oauth2callback():
         return redirect(url_for('login'))
     
     user_uid = session.get('connect_uid')
+    selected_secret = session.get('selected_secret_config')
 
-    client_config = json.loads(CLIENT_SECRETS_JSON)
+    if not selected_secret:
+        return "Erro: Configuração de OAuth perdida na sessão.", 400
+
+    client_config = json.loads(selected_secret)
     
     flow = Flow.from_client_config(
         client_config,
@@ -406,6 +429,10 @@ def plans_page():
 def profile():
     return render_template('profile.html')
 
+@app.route('/tips')
+def tips():
+    return render_template('tips.html')
+
 @app.route('/privacy')
 def privacy():
     return render_template('privacy.html')
@@ -484,9 +511,30 @@ def send_message():
     user_doc = user_ref.get()
     user_data = user_doc.to_dict() if user_doc.exists else {}
     
+    today_str = datetime.date.today().isoformat()
     plan = user_data.get('plan', 'free')
     credits = user_data.get('credits', 10) # Plano Free começa com 10 créditos
     
+    # --- LIMITE DIÁRIO (PROTEÇÃO DE COTA) ---
+    last_usage_date = user_data.get('last_usage_date')
+    daily_count = user_data.get('daily_count', 0)
+
+    # Reseta contador se mudou o dia
+    if last_usage_date != today_str:
+        daily_count = 0
+        user_ref.update({'daily_count': 0, 'last_usage_date': today_str})
+
+    # Definição de Limites Diários
+    # Free: limitado pelos créditos totais, mas também colocamos um teto diário
+    # Pro: "Ilimitado" mas com teto técnico para não estourar a API do Google (ex: 200 envios/dia)
+    DAILY_LIMIT = 200 if plan == 'pro' else 10
+
+    if daily_count >= DAILY_LIMIT:
+         return jsonify({
+            "status": "error", 
+            "message": f"Limite diário de segurança atingido ({DAILY_LIMIT} envios). Tente novamente amanhã."
+        }), 429
+
     if plan == 'free' and credits <= 0:
         return jsonify({
             "status": "error", 
@@ -515,9 +563,11 @@ def send_message():
                 }
             ).execute()
             
-            # Deduz crédito se for free
+            # Atualiza contadores
+            updates = {'daily_count': firestore.Increment(1)}
             if plan == 'free':
-                user_ref.update({'credits': firestore.Increment(-1)})
+                updates['credits'] = firestore.Increment(-1)
+            user_ref.update(updates)
             return jsonify({"status": "success", "message": "Mensagem enviada na Live!"})
 
         else: # Comentário Normal
@@ -533,9 +583,11 @@ def send_message():
                 }
             ).execute()
             
-            # Deduz crédito se for free
+            # Atualiza contadores
+            updates = {'daily_count': firestore.Increment(1)}
             if plan == 'free':
-                user_ref.update({'credits': firestore.Increment(-1)})
+                updates['credits'] = firestore.Increment(-1)
+            user_ref.update(updates)
             return jsonify({"status": "success", "message": "Comentário postado!"})
 
     except HttpError as e:

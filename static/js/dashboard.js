@@ -14,6 +14,12 @@ auth.onAuthStateChanged(async (user) => {
     checkUserStatus();
     // Carrega vídeos iniciais
     loadRecentVideos();
+
+    // Verifica Onboarding
+    const seen = localStorage.getItem("onboarding_seen");
+    if (!seen) {
+      document.getElementById("onboardingModal").classList.remove("hidden");
+    }
   } else {
     // Se não estiver logado, manda pro login
     window.location.href = "/login";
@@ -57,6 +63,11 @@ function logout() {
   auth.signOut().then(() => {
     window.location.href = "/";
   });
+}
+
+function closeOnboarding() {
+  document.getElementById("onboardingModal").classList.add("hidden");
+  localStorage.setItem("onboarding_seen", "true");
 }
 
 // --- Lógica do Bot ---
@@ -105,7 +116,7 @@ document
       if (isAuto) {
         resultDiv.style.display = "block";
         resultDiv.className =
-          "mt-4 text-center text-sm p-2.5 rounded bg-gray-800 text-white";
+          "mt-4 text-center text-sm p-2.5 rounded bg-gray-200 text-gray-800";
         resultDiv.innerText = `Enviando mensagem ${i} de ${total}...`;
       }
 
@@ -123,13 +134,13 @@ document
         const bgClass =
           data.status === "success"
             ? "bg-green-900 text-green-100"
-            : "bg-red-900 text-red-100";
+            : "bg-red-100 text-red-800";
         resultDiv.className = `mt-4 text-center text-sm p-2.5 rounded ${bgClass}`;
         resultDiv.style.display = "block";
       } catch (err) {
         resultDiv.innerText = `Erro de conexão na tentativa ${i}.`;
         resultDiv.className =
-          "mt-4 text-center text-sm p-2.5 rounded bg-red-900 text-red-100";
+          "mt-4 text-center text-sm p-2.5 rounded bg-red-100 text-red-800";
         resultDiv.style.display = "block";
       }
 
@@ -217,7 +228,7 @@ async function loadRecentVideos(pageToken = "", append = false) {
             : "bg-teal-700";
         const div = document.createElement("div");
         div.className =
-          "bg-yt-card dark:bg-light-card group relative cursor-pointer hover:scale-105 transition-transform duration-200";
+          "bg-white border border-gray-200 rounded-lg overflow-hidden group relative cursor-pointer hover:shadow-lg transition-all duration-200";
         div.onclick = () => {
           const input = document.getElementById("video_id");
           input.value = vid.id;
@@ -231,9 +242,9 @@ async function loadRecentVideos(pageToken = "", append = false) {
                 <span class="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded font-bold text-white shadow-md ${badgeClass}">${vid.type}</span>
             </div>
             <div class="py-2">
-                <p class="text-sm font-medium text-yt-text dark:text-light-text line-clamp-2 leading-tight">${vid.title}</p>
-                <span class="text-xs text-gray-500 block mt-1">${vid.channel}</span>
-                ${vid.viewers ? `<span class="text-xs text-red-500 font-bold block mt-1">👥 ${vid.viewers}</span>` : ""}
+                <p class="text-sm font-medium text-gray-800 line-clamp-2 leading-tight px-2">${vid.title}</p>
+                <span class="text-xs text-gray-500 block mt-1 px-2">${vid.channel}</span>
+                ${vid.viewers ? `<span class="text-xs text-red-500 font-bold block mt-1 px-2">👥 ${vid.viewers}</span>` : ""}
             </div>
         `;
         container.appendChild(div);
@@ -271,11 +282,11 @@ async function searchChannels() {
       data.channels.forEach((ch) => {
         const btn = document.createElement("div");
         btn.className =
-          "flex items-center gap-2 bg-gray-800 hover:bg-gray-700 p-2 rounded cursor-pointer border border-gray-700 transition";
+          "flex items-center gap-2 bg-gray-100 hover:bg-gray-200 p-2 rounded cursor-pointer border border-gray-300 transition";
         btn.onclick = () => selectChannelFilter(ch.id, ch.title);
         btn.innerHTML = `
                     <img src="${ch.thumbnail}" class="w-6 h-6 rounded-full">
-                    <span class="text-xs text-white font-medium truncate max-w-[100px]">${ch.title}</span>
+                    <span class="text-xs text-gray-800 font-medium truncate max-w-[100px]">${ch.title}</span>
                 `;
         resultsDiv.appendChild(btn);
       });
@@ -340,22 +351,5 @@ if (autoModeCheckbox) {
     const options = document.getElementById("autoOptions");
     if (this.checked) options.classList.remove("hidden");
     else options.classList.add("hidden");
-  });
-}
-
-// Theme Toggle
-const themeToggle = document.getElementById("themeToggle");
-const html = document.documentElement;
-const savedTheme = localStorage.getItem("theme") || "dark";
-if (savedTheme === "dark") html.classList.add("dark");
-else html.classList.remove("dark");
-
-if (themeToggle) {
-  themeToggle.addEventListener("click", () => {
-    html.classList.toggle("dark");
-    localStorage.setItem(
-      "theme",
-      html.classList.contains("dark") ? "dark" : "light",
-    );
   });
 }
