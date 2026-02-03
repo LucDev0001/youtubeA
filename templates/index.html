@@ -606,46 +606,62 @@
       });
 
       // Login
-      document.getElementById("btnLogin").addEventListener("click", async () => {
-        const email = document.getElementById("emailInput").value;
-        const pass = document.getElementById("passInput").value;
-        if (!email || !pass) return alert("Por favor, preencha e-mail e senha.");
+      document
+        .getElementById("btnLogin")
+        .addEventListener("click", async () => {
+          const email = document.getElementById("emailInput").value;
+          const pass = document.getElementById("passInput").value;
+          if (!email || !pass)
+            return alert("Por favor, preencha e-mail e senha.");
 
-        try {
-          await auth.signInWithEmailAndPassword(email, pass);
-        } catch (e) {
-          console.error("Erro login:", e);
-          let msg = e.message;
-          if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') msg = "E-mail ou senha incorretos.";
-          if (e.code === 'auth/user-not-found') msg = "Usuário não encontrado. Crie uma conta.";
-          alert("Erro ao entrar: " + msg);
-        }
-      });
+          try {
+            await auth.signInWithEmailAndPassword(email, pass);
+          } catch (e) {
+            console.error("Erro login:", e);
+            let msg = e.message;
+            if (
+              e.code === "auth/wrong-password" ||
+              e.code === "auth/invalid-credential"
+            )
+              msg = "E-mail ou senha incorretos.";
+            if (e.code === "auth/user-not-found")
+              msg = "Usuário não encontrado. Crie uma conta.";
+            alert("Erro ao entrar: " + msg);
+          }
+        });
 
       // Cadastro
-      document.getElementById("btnRegister").addEventListener("click", async () => {
-        const email = document.getElementById("emailInput").value;
-        const pass = document.getElementById("passInput").value;
-        if (!email || !pass) return alert("Por favor, preencha e-mail e senha.");
+      document
+        .getElementById("btnRegister")
+        .addEventListener("click", async () => {
+          const email = document.getElementById("emailInput").value;
+          const pass = document.getElementById("passInput").value;
+          if (!email || !pass)
+            return alert("Por favor, preencha e-mail e senha.");
 
-        try {
-          const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
-          // Cria doc inicial no Firestore
-          await db.collection("users").doc(userCredential.user.uid).set({
-            plan: "free",
-            credits: 10,
-            created_at: new Date(),
-            email: email
-          });
-          alert("Conta criada com sucesso! Você já está logado.");
-        } catch (e) {
-          console.error("Erro cadastro:", e);
-          let msg = e.message;
-          if (e.code === 'auth/email-already-in-use') msg = "Este e-mail já está em uso.";
-          if (e.code === 'auth/weak-password') msg = "A senha deve ter pelo menos 6 caracteres.";
-          alert("Erro ao criar conta: " + msg);
-        }
-      });
+          try {
+            const userCredential = await auth.createUserWithEmailAndPassword(
+              email,
+              pass,
+            );
+            // Cria doc inicial no Firestore
+            await db.collection("users").doc(userCredential.user.uid).set({
+              plan: "free",
+              credits: 10,
+              created_at: new Date(),
+              email: email,
+            });
+            alert("Conta criada com sucesso! Você já está logado.");
+          } catch (e) {
+            console.error("Erro cadastro:", e);
+            let msg = e.message;
+            if (e.code === "auth/email-already-in-use")
+              msg = "Este e-mail já está em uso.";
+            if (e.code === "auth/weak-password")
+              msg = "A senha deve ter pelo menos 6 caracteres.";
+            alert("Erro ao criar conta: " + msg);
+          }
+        });
 
       document
         .getElementById("btnLogout")
@@ -1002,22 +1018,6 @@
         document.getElementById("channelSearchResults").style.display = "none";
         loadRecentVideos();
       }
-
-      function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-          const resultDiv = document.getElementById("result");
-          resultDiv.innerText = "ID copiado: " + text;
-          resultDiv.className = "result success";
-          resultDiv.style.display = "block";
-          setTimeout(() => (resultDiv.style.display = "none"), 2000);
-        });
-      }
-
-      // Carrega a lista assim que a página abrir (se estiver logado)
-      // loadRecentVideos(); // Removido daqui, agora é chamado no checkUserStatus
-    </script>
-  </body>
-</html>
 
       function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => {
