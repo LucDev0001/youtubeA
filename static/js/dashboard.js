@@ -503,3 +503,119 @@ if (messageInput) {
     }
   });
 }
+
+// --- Templates & IA ---
+
+async function openTemplatesModal() {
+  document.getElementById("templatesModal").classList.remove("hidden");
+  const list = document.getElementById("templatesList");
+  list.innerHTML =
+    '<p class="text-center text-gray-500 text-sm">Carregando...</p>';
+
+  try {
+    const res = await fetch("/api/templates", {
+      headers: { Authorization: `Bearer ${userToken}` },
+    });
+    const data = await res.json();
+
+    list.innerHTML = "";
+    if (data.status === "success" && data.templates.length > 0) {
+      data.templates.forEach((t) => {
+        const div = document.createElement("div");
+        div.className =
+          "flex items-center justify-between bg-gray-50 p-2 rounded border border-gray-200 hover:bg-gray-100";
+
+        const p = document.createElement("p");
+        p.className =
+          "text-sm text-gray-800 truncate flex-1 cursor-pointer mr-2";
+        p.innerText = t.text;
+        p.onclick = () => applyTemplate(t.text);
+
+        const btn = document.createElement("button");
+        btn.className = "text-red-500 hover:text-red-700 text-xs font-bold";
+        btn.innerText = "🗑️";
+        btn.onclick = () => deleteTemplate(t.id);
+
+        div.appendChild(p);
+        div.appendChild(btn);
+        list.appendChild(div);
+      });
+    } else {
+      list.innerHTML =
+        '<p class="text-center text-gray-500 text-sm">Nenhum template salvo.</p>';
+    }
+  } catch (e) {
+    list.innerHTML =
+      '<p class="text-center text-red-500 text-sm">Erro ao carregar.</p>';
+  }
+}
+
+function applyTemplate(text) {
+  const textarea = document.querySelector('textarea[name="message"]');
+  textarea.value = text;
+  textarea.dispatchEvent(new Event("input")); // Dispara validação
+  document.getElementById("templatesModal").classList.add("hidden");
+}
+
+async function saveCurrentAsTemplate() {
+  const text = document.querySelector('textarea[name="message"]').value.trim();
+  if (!text) return alert("Escreva algo para salvar.");
+
+  try {
+    const res = await fetch("/api/templates", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${userToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text: text }),
+    });
+    const data = await res.json();
+    if (data.status === "success") alert("Template salvo!");
+    else alert("Erro: " + data.message);
+  } catch (e) {
+    alert("Erro ao salvar.");
+  }
+}
+
+async function deleteTemplate(id) {
+  if (!confirm("Apagar template?")) return;
+  try {
+    await fetch(`/api/templates/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${userToken}` },
+    });
+    openTemplatesModal(); // Recarrega lista
+  } catch (e) {
+    alert("Erro ao apagar.");
+  }
+}
+
+async function generateAI() {
+  const title = document.getElementById("vidTitle").innerText;
+  if (!title)
+    return alert("Carregue um vídeo primeiro (clique em um vídeo do feed).");
+  const textarea = document.querySelector('textarea[name="message"]');
+  textarea.value = "Gerando sugestão...";
+  try {
+    const res = await fetch("/api/generate_ai", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${userToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ title: title }),
+    });
+    const data = await res.json();
+    if (data.status === "success") {
+      textarea.value = data.suggestion;
+      textarea.dispatchEvent(new Event("input"));
+    } else {
+      textarea.value = "";
+      alert(data.message);
+    }
+  } catch (e) {
+    textarea.value = "";
+    alert("Erro na IA.");
+  }
+}

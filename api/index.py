@@ -1020,6 +1020,49 @@ def admin_process_refund():
 
     return jsonify({"status": "success", "message": "Plano removido com sucesso."})
 
+# --- ROTAS DE TEMPLATES E IA ---
+@app.route('/api/templates', methods=['GET', 'POST'])
+def manage_templates():
+    user = get_user_from_token()
+    if not user: return jsonify({"status": "error", "message": "Não autenticado"}), 401
+    uid = user['uid']
+    templates_ref = db.collection('users').document(uid).collection('templates')
+
+    if request.method == 'GET':
+        docs = templates_ref.order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+        templates = [{"id": d.id, "text": d.to_dict().get('text')} for d in docs]
+        return jsonify({"status": "success", "templates": templates})
+
+    if request.method == 'POST':
+        data = request.get_json()
+        text = data.get('text')
+        if not text: return jsonify({"status": "error", "message": "Texto vazio"}), 400
+        
+        new_doc = templates_ref.add({'text': text, 'created_at': datetime.datetime.now()})
+        return jsonify({"status": "success", "id": new_doc[1].id, "message": "Template salvo!"})
+
+@app.route('/api/templates/<template_id>', methods=['DELETE'])
+def delete_template(template_id):
+    user = get_user_from_token()
+    if not user: return jsonify({"status": "error", "message": "Não autenticado"}), 401
+    uid = user['uid']
+    
+    db.collection('users').document(uid).collection('templates').document(template_id).delete()
+    return jsonify({"status": "success", "message": "Template removido."})
+
+@app.route('/api/generate_ai', methods=['POST'])
+def generate_ai_comment():
+    user = get_user_from_token()
+    if not user: return jsonify({"status": "error", "message": "Não autenticado"}), 401
+    data = request.get_json()
+    video_title = data.get('title', '')
+    if not video_title: return jsonify({"status": "error", "message": "Título do vídeo não encontrado."}), 400
+    clean_title = video_title.split('|')[0].split('-')[0].strip()
+    intros = ["Ótimo vídeo sobre", "Muito bom ver conteúdo sobre", "Interessante essa abordagem de", "Sempre aprendendo mais sobre", "Top demais esse vídeo de"]
+    compliments = ["ficou muito bem explicado!", "ajudou demais.", "conteúdo de primeira.", "like garantido!", "parabéns pelo trabalho!"]
+    suggestion = f"{random.choice(intros)} {clean_title}, {random.choice(compliments)}"
+    return jsonify({"status": "success", "suggestion": suggestion})
+
 @app.route('/send', methods=['POST'])
 def send_message():
     user = get_user_from_token()
