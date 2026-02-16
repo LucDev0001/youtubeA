@@ -329,6 +329,14 @@ def get_recent_videos():
         videos = []
         next_page_token = None
 
+        # Suporte para buscar vídeos do próprio usuário ('mine')
+        if channel_filter == 'mine':
+            mine_resp = youtube.channels().list(part="id", mine=True).execute()
+            if mine_resp.get("items"):
+                channel_filter = mine_resp["items"][0]["id"]
+            else:
+                return jsonify({"status": "error", "message": "Seu canal não foi encontrado."}), 404
+
         if channel_filter:
             # MODO 1: Vídeos de um canal específico
             # Primeiro pega o ID da playlist de uploads
@@ -411,6 +419,28 @@ def get_recent_videos():
                                 })
                         except Exception:
                             continue
+
+            # FALLBACK: Se não encontrou vídeos nas inscrições (ex: conta nova), busca os do próprio usuário
+            if not videos and not page_token:
+                try:
+                    mine_resp = youtube.channels().list(part="contentDetails", mine=True).execute()
+                    if mine_resp.get("items"):
+                        uploads_id = mine_resp["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+                        pl_resp = youtube.playlistItems().list(
+                            part="snippet",
+                            playlistId=uploads_id,
+                            maxResults=6
+                        ).execute()
+                        for item in pl_resp.get("items", []):
+                            videos.append({
+                                "id": item["snippet"]["resourceId"]["videoId"],
+                                "title": item["snippet"]["title"],
+                                "channel": "Seu Canal",
+                                "thumbnail": item["snippet"]["thumbnails"]["medium"]["url"],
+                                "type": "VOCÊ"
+                            })
+                except Exception as e:
+                    logger.warning(f"Erro no fallback de videos: {e}")
 
         # Enriquecer dados para verificar se é LIVE real e filtrar
         if videos:

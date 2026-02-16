@@ -337,6 +337,15 @@ function selectChannelFilter(id, name) {
   loadRecentVideos();
 }
 
+function loadMyVideos() {
+  currentChannelFilter = 'mine';
+  const titleEl = document.getElementById("listTitle");
+  titleEl.innerText = "Meus Vídeos";
+  titleEl.classList.remove("hidden");
+  document.getElementById("clearFilterBtn").classList.remove("hidden");
+  loadRecentVideos();
+}
+
 function clearFilter() {
   currentChannelFilter = null;
   document.getElementById("listTitle").classList.add("hidden");
