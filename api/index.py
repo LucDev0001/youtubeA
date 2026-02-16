@@ -693,24 +693,25 @@ def create_checkout():
         # Tenta pegar de 'data' ou usa a raiz do JSON (fallback para variações da API)
         res_data = data.get('data', data)
         
-        # Tenta encontrar o código PIX em vários campos possíveis
-        pix_code = res_data.get('pixCopyPaste')
+        # Mapeamento atualizado conforme logs (brCode é o padrão atual)
+        pix_code = res_data.get('brCode') 
         if not pix_code:
-            pix_code = res_data.get('emv') # Algumas APIs usam 'emv'
+            pix_code = res_data.get('pixCopyPaste') or res_data.get('emv')
+            
         if not pix_code and 'pix' in res_data:
             pix_code = res_data['pix'].get('code') or res_data['pix'].get('pixCopyPaste')
             
-        checkout_url = res_data.get('url')
+        # Tenta pegar a imagem pronta (Base64) ou URL de checkout
+        qr_code_url = res_data.get('brCodeBase64') or res_data.get('url')
         
-        # Gera a imagem do QR Code usando QuickChart (mais robusto para strings longas)
-        qr_code_url = checkout_url
-        if pix_code:
+        # Se não veio imagem mas temos o código, gera manualmente
+        if not qr_code_url and pix_code:
             encoded_pix = urllib.parse.quote_plus(pix_code)
             qr_code_url = f"https://quickchart.io/qr?text={encoded_pix}&size=300&margin=1"
 
         return jsonify({
             "status": "success", 
-            "url": checkout_url,
+            "url": res_data.get('url'), # URL de fallback
             "pix": {
                 "code": pix_code,
                 "qr_code": qr_code_url
