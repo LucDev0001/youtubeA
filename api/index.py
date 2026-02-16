@@ -657,7 +657,32 @@ def create_checkout():
         
         logger.info(f"Billing criado: {billing}")
         
-        return jsonify({"status": "success", "url": billing.url})
+        # Extração de dados para Checkout Transparente
+        pix_code = None
+        qr_code = None
+        
+        try:
+            # Tenta extrair dados do PIX se disponíveis no objeto billing
+            if hasattr(billing, 'pix') and billing.pix:
+                p = billing.pix
+                # Suporta acesso como dict ou atributo (dependendo da versão da lib)
+                if isinstance(p, dict):
+                    pix_code = p.get('code')
+                    qr_code = p.get('qr_code') or p.get('qrCode')
+                else:
+                    pix_code = getattr(p, 'code', None)
+                    qr_code = getattr(p, 'qr_code', None) or getattr(p, 'qrCode', None)
+        except Exception as e:
+            logger.warning(f"Erro ao extrair dados PIX para checkout transparente: {e}")
+
+        return jsonify({
+            "status": "success", 
+            "url": billing.url,
+            "pix": {
+                "code": pix_code,
+                "qr_code": qr_code
+            }
+        })
     except Exception as e:
         error_msg = str(e)
         # Tenta extrair detalhes do erro da SDK se disponível para debug
