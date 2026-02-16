@@ -48,19 +48,22 @@ async function checkUserStatus() {
       const ytConnected = document.getElementById("ytConnected");
       ytConnected.classList.remove("hidden");
 
-      // Mostra qual canal está conectado
+      let channelHtml = "";
       if (data.youtube_channel && data.youtube_channel.title) {
-        ytConnected.innerHTML = `
-            <p class="text-green-500 font-bold">✅ Conectado</p>
+        channelHtml = `
             <div class="flex items-center gap-2 mt-2 bg-gray-100 p-2 rounded border border-gray-200">
                 ${data.youtube_channel.thumbnail ? `<img src="${data.youtube_channel.thumbnail}" class="w-8 h-8 rounded-full">` : ""}
                 <span class="text-sm font-bold text-gray-700">${data.youtube_channel.title}</span>
-            </div>
+            </div>`;
+      }
+
+      ytConnected.innerHTML = `
+            <p class="text-green-500 font-bold">✅ Conectado</p>
+            ${channelHtml}
             <button onclick="disconnectYoutube()" class="mt-2 text-xs text-red-500 hover:text-red-700 underline w-full text-left">
                 Desconectar conta Google
             </button>
           `;
-      }
 
       document.getElementById("botArea").classList.remove("hidden");
     } else {
