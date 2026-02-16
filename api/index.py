@@ -680,7 +680,7 @@ def create_checkout():
             }
         }
         
-        response = requests.post(url, json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
         
         if not response.ok:
             logger.error(f"Erro AbacatePay: {response.text}")
