@@ -666,7 +666,7 @@ def create_checkout():
         }
         
         payload = {
-            "amount": price, # Valor em centavos
+            "amount": int(price), # Garante que o valor é inteiro (centavos)
             "expiresIn": 3600, # 1 hora
             "description": "Plano PRO - YouTube Growth Bot",
             "customer": {
@@ -684,19 +684,21 @@ def create_checkout():
         
         if not response.ok:
             logger.error(f"Erro AbacatePay: {response.text}")
-            return jsonify({"status": "error", "message": "Falha ao gerar PIX"}), 500
+            # Retorna o erro real da API para facilitar o debug
+            return jsonify({"status": "error", "message": f"Erro no pagamento: {response.text}"}), 500
             
         data = response.json()
-        res_data = data.get('data', {})
+        # Tenta pegar de 'data' ou usa a raiz do JSON (fallback para variações da API)
+        res_data = data.get('data', data)
         
         pix_code = res_data.get('pixCopyPaste')
         checkout_url = res_data.get('url')
         
-        # Gera a imagem do QR Code usando uma API pública para garantir que seja exibida
+        # Gera a imagem do QR Code usando QuickChart (mais robusto para strings longas)
         qr_code_url = checkout_url
         if pix_code:
-            encoded_pix = urllib.parse.quote(pix_code)
-            qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={encoded_pix}"
+            encoded_pix = urllib.parse.quote_plus(pix_code)
+            qr_code_url = f"https://quickchart.io/qr?text={encoded_pix}&size=300&margin=1"
 
         return jsonify({
             "status": "success", 
