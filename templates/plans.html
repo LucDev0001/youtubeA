@@ -7,69 +7,277 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-[#0f0f0f] text-white font-sans">
-    <div class="max-w-6xl mx-auto px-4 py-20">
+    <!-- Background Effects -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+      <div
+        class="absolute top-0 left-1/4 w-96 h-96 bg-red-900/20 rounded-full blur-[128px]"
+      ></div>
+      <div
+        class="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-900/10 rounded-full blur-[128px]"
+      ></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-20">
+      <!-- Header -->
       <div class="text-center mb-16">
-        <h1 class="text-4xl font-bold mb-4">Escolha o plano ideal</h1>
-        <p class="text-gray-400">Desbloqueie todo o potencial do seu canal.</p>
+        <span class="text-red-500 font-bold tracking-wider text-sm uppercase"
+          >Seja um Creator de Elite</span
+        >
+        <h1
+          class="text-5xl md:text-6xl font-extrabold mb-6 mt-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400"
+        >
+          Desbloqueie o Poder da Automação
+        </h1>
+        <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+          Pare de perder tempo comentando manualmente. O Abot Youtube trabalha
+          24/7 para crescer seu canal enquanto você cria conteúdo.
+        </p>
       </div>
 
-      <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <!-- Pricing Grid -->
+      <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto items-center">
         <!-- Free -->
         <div
-          class="p-8 bg-[#1e1e1e] rounded-2xl border border-gray-800 flex flex-col"
+          class="p-8 bg-[#161616] rounded-3xl border border-gray-800 flex flex-col hover:border-gray-600 transition duration-300"
         >
-          <h3 class="text-2xl font-bold mb-2">Gratuito</h3>
-          <div class="text-4xl font-bold mb-6">
-            R$ 0<span class="text-lg text-gray-500 font-normal">/mês</span>
-          </div>
-          <ul class="space-y-4 mb-8 flex-1 text-gray-300">
-            <li>✅ 10 Créditos de envio</li>
-            <li>✅ Acesso ao Feed de Vídeos</li>
-            <li>❌ Automação Limitada</li>
+          <h3 class="text-xl font-medium text-gray-400 mb-2">Iniciante</h3>
+          <div class="text-5xl font-bold mb-2 text-white">R$ 0</div>
+          <p class="text-gray-500 text-sm mb-8">
+            Para quem está testando a ferramenta.
+          </p>
+
+          <ul class="space-y-4 mb-8 flex-1 text-gray-300 text-sm">
+            <li class="flex items-center gap-3">
+              <svg
+                class="w-5 h-5 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              10 Créditos de envio
+            </li>
+            <li class="flex items-center gap-3">
+              <svg
+                class="w-5 h-5 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              Acesso ao Feed de Vídeos
+            </li>
+            <li class="flex items-center gap-3 text-gray-600">
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+              Sem Modo Automático (Loop)
+            </li>
           </ul>
           <a
             href="/login"
-            class="block text-center py-3 border border-gray-600 rounded-lg hover:bg-gray-800"
-            >Começar Grátis</a
+            class="block text-center py-4 border border-gray-700 rounded-xl text-gray-300 font-bold hover:bg-gray-800 transition"
+            >Criar Conta Grátis</a
           >
         </div>
 
         <!-- Pro -->
         <div
-          class="p-8 bg-gradient-to-b from-red-900 to-[#1e1e1e] rounded-2xl border border-red-600 flex flex-col relative overflow-hidden"
+          class="relative p-8 bg-[#1a1a1a] rounded-3xl border-2 border-red-600 flex flex-col shadow-[0_0_40px_rgba(220,38,38,0.3)] transform md:scale-105 z-10"
         >
           <div
-            class="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg"
+            class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-red-600 to-orange-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg tracking-wide uppercase"
           >
-            POPULAR
+            Recomendado
           </div>
-          <h3 class="text-2xl font-bold mb-2">Abot PRO</h3>
-          <div class="text-4xl font-bold mb-6">
-            R$ {{ "%.2f"|format(price/100)|replace('.', ',') }}<span
-              class="text-lg text-gray-300 font-normal"
-              >/mês</span
-            >
+
+          <h3 class="text-xl font-bold text-red-500 mb-2">Abot PRO 💎</h3>
+          <div class="flex items-end gap-2 mb-2">
+            <div class="text-5xl font-bold text-white">
+              R$ {{ "%.2f"|format(price/100)|replace('.', ',') }}
+            </div>
+            <span class="text-gray-400 mb-2">/mês</span>
           </div>
-          <ul class="space-y-4 mb-8 flex-1 text-white">
-            <li>✅ Envios Ilimitados</li>
-            <li>✅ Automação Completa (Loop)</li>
-            <li>✅ Suporte Prioritário</li>
-            <li>✅ Templates Personalizados</li>
+          <p
+            class="text-green-400 text-xs font-bold mb-8 bg-green-900/20 inline-block py-1 px-2 rounded w-fit"
+          >
+            ⚡ Menos de R$ 1,00 por dia
+          </p>
+
+          <ul class="space-y-4 mb-8 flex-1 text-white text-sm">
+            <li class="flex items-center gap-3">
+              <div class="bg-red-600/20 p-1 rounded-full">
+                <svg
+                  class="w-4 h-4 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+              </div>
+              <span class="font-bold">Envios Ilimitados</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <div class="bg-red-600/20 p-1 rounded-full">
+                <svg
+                  class="w-4 h-4 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+              </div>
+              <span>Modo Automático (Loop Infinito)</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <div class="bg-red-600/20 p-1 rounded-full">
+                <svg
+                  class="w-4 h-4 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+              </div>
+              <span>Prioridade na Fila de Processamento</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <div class="bg-red-600/20 p-1 rounded-full">
+                <svg
+                  class="w-4 h-4 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+              </div>
+              <span>Suporte VIP via WhatsApp</span>
+            </li>
           </ul>
+
           <a
             href="#"
             id="btnSubscribe"
-            class="block text-center py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition"
-            >Assinar Agora</a
+            class="block text-center py-4 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold rounded-xl hover:from-red-500 hover:to-red-600 transition shadow-lg shadow-red-900/40 transform hover:-translate-y-1"
+            >QUERO ACESSO ILIMITADO</a
           >
+
+          <div
+            class="mt-4 flex items-center justify-center gap-2 text-[10px] text-gray-500"
+          >
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"
+              />
+            </svg>
+            <span>Pagamento Seguro via PIX</span>
+            <span class="mx-1">•</span>
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"
+              />
+            </svg>
+            <span>Acesso Imediato</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ Section -->
+      <div class="max-w-3xl mx-auto mt-24">
+        <h2 class="text-2xl font-bold text-center mb-8">
+          Perguntas Frequentes
+        </h2>
+        <div class="space-y-4">
+          <div class="bg-[#161616] p-6 rounded-xl border border-gray-800">
+            <h4 class="font-bold text-white mb-2">O pagamento é seguro?</h4>
+            <p class="text-gray-400 text-sm">
+              Sim! Utilizamos o AbacatePay, uma das plataformas mais seguras do
+              Brasil. Seus dados são criptografados e o acesso é liberado
+              automaticamente após o PIX.
+            </p>
+          </div>
+          <div class="bg-[#161616] p-6 rounded-xl border border-gray-800">
+            <h4 class="font-bold text-white mb-2">
+              Posso cancelar quando quiser?
+            </h4>
+            <p class="text-gray-400 text-sm">
+              Com certeza. Você tem total controle no seu painel. Se cancelar,
+              continua com acesso até o fim do período pago.
+            </p>
+          </div>
+          <div class="bg-[#161616] p-6 rounded-xl border border-gray-800">
+            <h4 class="font-bold text-white mb-2">
+              Existe risco para meu canal?
+            </h4>
+            <p class="text-gray-400 text-sm">
+              O Abot Youtube simula o comportamento humano e respeita os limites
+              da API. Porém, recomendamos sempre usar com moderação e evitar
+              spam repetitivo.
+            </p>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- RODAPÉ LEGAL -->
     <div
-      class="max-w-4xl mx-auto px-4 pb-20 text-center text-gray-500 text-xs space-y-2"
+      class="max-w-4xl mx-auto px-4 pb-20 pt-10 text-center text-gray-600 text-xs space-y-2 border-t border-gray-900 mt-10"
     >
+      <div class="flex justify-center gap-4 mb-4 opacity-50">
+        <!-- Ícones de Garantia (Simulados com texto/svg simples para não carregar imagens externas) -->
+        <div class="flex items-center gap-1">
+          <span class="text-xl">🛡️</span> 7 Dias de Garantia
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="text-xl">🔒</span> Site Seguro
+        </div>
+      </div>
       <p>
         <strong>Renovação e Cancelamento:</strong> O plano PRO é uma assinatura
         mensal. Você receberá um lembrete 3 dias antes do vencimento. O
