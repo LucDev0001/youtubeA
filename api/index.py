@@ -4,6 +4,7 @@ import logging
 import datetime
 import random
 import requests
+import re
 from flask import Flask, request, render_template, jsonify, session, redirect, url_for, send_from_directory
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -229,28 +230,37 @@ def get_video_info():
     if not video_id:
         return jsonify({"status": "error", "message": "ID inválido."}), 400
 
-    youtube = get_youtube_service(user['uid'])
-    if not youtube: return jsonify({"status": "error", "message": "Canal YouTube não conectado."}), 400
-
     try:
-        response = youtube.videos().list(
-            part="snippet,liveStreamingDetails",
-            id=video_id
-        ).execute()
+        # --- MODO SCRAPING (Economia de Cota: 1 unidade por chamada) ---
+        # Busca o HTML da página do vídeo para extrair metadados sem gastar cota
+        url = f"https://www.youtube.com/watch?v={video_id}"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+        resp = requests.get(url, headers=headers)
+        html = resp.text
 
-        items = response.get("items", [])
-        if not items:
-            return jsonify({"status": "error", "message": "Vídeo não encontrado."}), 404
+        # Extração via Regex (Mais leve que carregar bibliotecas pesadas)
+        title_match = re.search(r'<meta name="title" content="(.*?)">', html)
+        title = title_match.group(1) if title_match else "Título desconhecido"
 
-        snippet = items[0]["snippet"]
-        live_details = items[0].get("liveStreamingDetails", {})
+        # Tenta pegar o nome do canal (autor)
+        author_match = re.search(r'<link itemprop="name" content="(.*?)">', html)
+        channel_title = author_match.group(1) if author_match else "Canal desconhecido"
+
+        # Thumbnail
+        thumb_match = re.search(r'<meta property="og:image" content="(.*?)">', html)
+        thumbnail = thumb_match.group(1) if thumb_match else ""
+
+        # Verifica se é live (procura por indicadores de transmissão no HTML ou JSON embutido)
+        is_live = '"isLive":true' in html or "liveStreamability" in html
         
         return jsonify({
             "status": "success",
-            "title": snippet["title"],
-            "channel": snippet["channelTitle"],
-            "thumbnail": snippet["thumbnails"]["medium"]["url"],
-            "is_live": bool(live_details.get("activeLiveChatId"))
+            "title": title,
+            "channel": channel_title,
+            "thumbnail": thumbnail,
+            "is_live": is_live
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -264,24 +274,39 @@ def search_channels():
     if not query:
         return jsonify({"status": "success", "channels": []})
 
-    youtube = get_youtube_service(user['uid'])
-    if not youtube: return jsonify({"status": "error", "message": "Canal YouTube não conectado."}), 400
-
     try:
-        resp = youtube.search().list(
-            part="snippet",
-            type="channel",
-            q=query,
-            maxResults=5
-        ).execute()
+        # --- MODO SCRAPING (Economia de Cota: 100 unidades por chamada!) ---
+        # sp=EgIQAg%253D%253D força o filtro para "Canais"
+        search_url = f"https://www.youtube.com/results?search_query={query}&sp=EgIQAg%253D%253D"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7"
+        }
+        
+        resp = requests.get(search_url, headers=headers)
+        html = resp.text
         
         channels = []
-        for item in resp.get("items", []):
-            channels.append({
-                "id": item["snippet"]["channelId"],
-                "title": item["snippet"]["channelTitle"],
-                "thumbnail": item["snippet"]["thumbnails"]["default"]["url"]
-            })
+        # Regex simplificado para encontrar dados do canal no JSON embutido (ytInitialData)
+        # Nota: Em produção, usar uma lib como 'youtube-search-python' é mais robusto, 
+        # mas este regex resolve para um MVP sem dependências extras.
+        
+        # Procura por padrões de channelId e title próximos
+        # Esta é uma aproximação. O YouTube muda o HTML frequentemente.
+        ids = re.findall(r'\"channelId\":\"(UC[\w-]{22})\"', html)
+        titles = re.findall(r'\"title\":{\"simpleText\":\"(.*?)\"}', html)
+        
+        # Pega os primeiros 5 únicos
+        seen = set()
+        for i, cid in enumerate(ids):
+            if cid not in seen and i < len(titles) and len(channels) < 5:
+                channels.append({
+                    "id": cid,
+                    "title": titles[i],
+                    "thumbnail": "https://www.gstatic.com/youtube/img/channels/avatar_default_std.png" # Simplificação
+                })
+                seen.add(cid)
+
         return jsonify({"status": "success", "channels": channels})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
