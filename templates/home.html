@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - YouTube Bot</title>
+    <title>Dashboard - Abot Youtube</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -30,7 +30,7 @@
         class="w-64 bg-yt-card border-r border-gray-200 flex flex-col fixed md:relative z-50 h-full transition-transform transform -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none"
       >
         <div class="p-6 text-xl font-bold flex items-center gap-2">
-          <span class="text-red-600">▶</span> Painel
+          <span class="text-red-600">🤖</span> Abot Youtube
         </div>
         <nav class="flex-1 px-4 space-y-2">
           <a
@@ -110,6 +110,27 @@
                 >
                   Conectar Agora
                 </button>
+
+                <!-- AVISO DE CONFIANÇA / GOOGLE VERIFICATION -->
+                <div
+                  class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800"
+                >
+                  <p class="font-bold mb-1">ℹ️ Apareceu um aviso do Google?</p>
+                  <p class="mb-2">
+                    Como este é um app exclusivo (Beta), o Google pode exibir a
+                    tela "O Google não verificou este app".
+                  </p>
+                  <ol class="list-decimal pl-4 space-y-1 text-blue-700">
+                    <li>
+                      Clique em <strong>"Avançado"</strong> no canto inferior
+                      esquerdo.
+                    </li>
+                    <li>
+                      Clique em
+                      <strong>"Acessar Abot Youtube (não seguro)"</strong>.
+                    </li>
+                  </ol>
+                </div>
               </div>
               <div id="ytConnected" class="hidden">
                 <p class="text-green-500 font-bold">✅ Canal Conectado</p>
@@ -305,7 +326,7 @@
         class="bg-white text-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden"
       >
         <div class="bg-red-600 p-6 text-white text-center">
-          <h2 class="text-2xl font-bold">Bem-vindo ao YouTube Bot! 🚀</h2>
+          <h2 class="text-2xl font-bold">Bem-vindo ao Abot Youtube! 🚀</h2>
           <p class="text-red-100">Seu assistente pessoal para engajamento.</p>
         </div>
         <div class="p-8 space-y-6">

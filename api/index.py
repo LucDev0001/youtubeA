@@ -512,9 +512,9 @@ def plans_page():
     # Busca Preço Atual do Firestore para exibir no frontend
     settings_ref = db.collection('settings').document('general')
     settings_doc = settings_ref.get()
-    price = 200
+    price = 2990
     if settings_doc.exists:
-        price = settings_doc.to_dict().get('pro_price', 200)
+        price = settings_doc.to_dict().get('pro_price', 2990)
     return render_template('plans.html', price=price)
 
 @app.route('/profile')
@@ -559,9 +559,9 @@ def admin_get_data():
     # Busca Preço Atual
     settings_ref = db.collection('settings').document('general')
     settings_doc = settings_ref.get()
-    price = 200
+    price = 2990
     if settings_doc.exists:
-        price = settings_doc.to_dict().get('pro_price', 200)
+        price = settings_doc.to_dict().get('pro_price', 2990)
 
     # Busca Usuários
     users_ref = db.collection('users')
@@ -654,9 +654,9 @@ def create_checkout():
         # Busca preço dinâmico do banco de dados
         settings_ref = db.collection('settings').document('general')
         settings_doc = settings_ref.get()
-        price = 200 # Valor padrão
+        price = 2990 # Valor padrão (R$ 29,90)
         if settings_doc.exists:
-            price = settings_doc.to_dict().get('pro_price', 200)
+            price = settings_doc.to_dict().get('pro_price', 2990)
 
         # --- INTEGRAÇÃO DIRETA VIA ENDPOINT PIX QR CODE ---
         url = "https://api.abacatepay.com/v1/pixQrCode/create"
@@ -668,7 +668,7 @@ def create_checkout():
         payload = {
             "amount": int(price), # Garante que o valor é inteiro (centavos)
             "expiresIn": 3600, # 1 hora
-            "description": "Plano PRO - YouTube Growth Bot",
+            "description": "Assinatura Mensal - Abot Youtube PRO",
             "customer": {
                 "name": name,
                 "cellphone": phone,
