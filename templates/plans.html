@@ -66,6 +66,61 @@
       </div>
     </div>
 
+    <!-- MODAL PIX TRANSPARENTE -->
+    <div
+      id="pixModal"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm"
+    >
+      <div
+        class="bg-[#1e1e1e] border border-gray-700 p-6 rounded-2xl max-w-md w-full mx-4 text-center shadow-2xl"
+      >
+        <h3 class="text-2xl font-bold mb-4 text-white">Pagamento via PIX</h3>
+        <p class="text-gray-400 text-sm mb-4">
+          Escaneie o QR Code ou copie o código abaixo para liberar seu acesso
+          instantaneamente.
+        </p>
+
+        <div class="bg-white p-2 rounded-lg inline-block mb-4">
+          <img
+            id="pixQr"
+            src=""
+            alt="QR Code PIX"
+            class="w-48 h-48 object-contain mx-auto"
+          />
+        </div>
+
+        <div class="relative mb-6">
+          <input
+            type="text"
+            id="pixCode"
+            readonly
+            class="w-full bg-[#121212] border border-gray-700 text-gray-300 text-xs p-3 rounded pr-20 focus:outline-none focus:border-red-600"
+          />
+          <button
+            onclick="copyPix()"
+            class="absolute right-1 top-1 bottom-1 px-3 bg-gray-800 hover:bg-gray-700 text-white text-xs font-bold rounded transition"
+          >
+            COPIAR
+          </button>
+        </div>
+
+        <div class="flex gap-3 justify-center">
+          <button
+            onclick="closePixModal()"
+            class="px-6 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 transition"
+          >
+            Fechar
+          </button>
+          <a
+            href="/app"
+            class="px-6 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+          >
+            <span>Já Paguei</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -95,8 +150,20 @@
               });
               const data = await response.json();
 
-              if (data.status === "success" && data.url) {
-                window.location.href = data.url; // Redireciona para o pagamento
+              if (data.status === "success") {
+                if (data.pix && data.pix.code) {
+                  // Exibe Modal PIX Transparente
+                  document
+                    .getElementById("pixModal")
+                    .classList.remove("hidden");
+                  document.getElementById("pixCode").value = data.pix.code;
+                  if (data.pix.qr_code)
+                    document.getElementById("pixQr").src = data.pix.qr_code;
+                  btn.innerText = "Assinar Agora";
+                  btn.disabled = false;
+                } else if (data.url) {
+                  window.location.href = data.url; // Fallback para URL externa se não tiver PIX direto
+                }
               } else {
                 alert("Erro: " + (data.message || "Tente novamente."));
                 btn.innerText = "Assinar Agora";
@@ -110,6 +177,18 @@
             }
           }
         });
+
+      function closePixModal() {
+        document.getElementById("pixModal").classList.add("hidden");
+      }
+
+      function copyPix() {
+        const copyText = document.getElementById("pixCode");
+        copyText.select();
+        navigator.clipboard
+          .writeText(copyText.value)
+          .then(() => alert("Código PIX copiado!"));
+      }
     </script>
   </body>
 </html>
