@@ -5,6 +5,7 @@ import datetime
 import random
 import requests
 import re
+import urllib.parse
 from flask import Flask, request, render_template, jsonify, session, redirect, url_for, send_from_directory
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -687,13 +688,22 @@ def create_checkout():
             
         data = response.json()
         res_data = data.get('data', {})
+        
+        pix_code = res_data.get('pixCopyPaste')
+        checkout_url = res_data.get('url')
+        
+        # Gera a imagem do QR Code usando uma API pública para garantir que seja exibida
+        qr_code_url = checkout_url
+        if pix_code:
+            encoded_pix = urllib.parse.quote(pix_code)
+            qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={encoded_pix}"
 
         return jsonify({
             "status": "success", 
-            "url": res_data.get('url'), # URL do QR Code como fallback
+            "url": checkout_url,
             "pix": {
-                "code": res_data.get('pixCopyPaste'),
-                "qr_code": res_data.get('url')
+                "code": pix_code,
+                "qr_code": qr_code_url
             }
         })
     except Exception as e:
