@@ -128,6 +128,7 @@
     <script src="/static/js/firebase-config.js"></script>
 
     <script>
+      let pollInterval;
       document
         .getElementById("btnSubscribe")
         .addEventListener("click", async (e) => {
@@ -176,6 +177,8 @@
                   document.getElementById("pixCode").value = data.pix.code;
                   if (data.pix.qr_code)
                     document.getElementById("pixQr").src = data.pix.qr_code;
+
+                  startPolling();
                 } else if (data.url) {
                   console.warn(
                     "PIX não encontrado, redirecionando para URL:",
@@ -210,6 +213,7 @@
 
       function closePixModal() {
         document.getElementById("pixModal").classList.add("hidden");
+        if (pollInterval) clearInterval(pollInterval);
       }
 
       function copyPix() {
@@ -218,6 +222,27 @@
         navigator.clipboard
           .writeText(copyText.value)
           .then(() => alert("Código PIX copiado!"));
+      }
+
+      function startPolling() {
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(async () => {
+          try {
+            const user = auth.currentUser;
+            if (!user) return;
+            const token = await user.getIdToken();
+            const res = await fetch("/api/check_status", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            const data = await res.json();
+            if (data.status === "approved") {
+              clearInterval(pollInterval);
+              window.location.href = "/thank-you";
+            }
+          } catch (e) {
+            console.error("Erro no polling:", e);
+          }
+        }, 3000);
       }
     </script>
   </body>

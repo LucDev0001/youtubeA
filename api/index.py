@@ -512,9 +512,9 @@ def plans_page():
     # Busca Preço Atual do Firestore para exibir no frontend
     settings_ref = db.collection('settings').document('general')
     settings_doc = settings_ref.get()
-    price = 2990
+    price = 200
     if settings_doc.exists:
-        price = settings_doc.to_dict().get('pro_price', 2990)
+        price = settings_doc.to_dict().get('pro_price', 200)
     return render_template('plans.html', price=price)
 
 @app.route('/profile')
@@ -559,9 +559,9 @@ def admin_get_data():
     # Busca Preço Atual
     settings_ref = db.collection('settings').document('general')
     settings_doc = settings_ref.get()
-    price = 2990
+    price = 200
     if settings_doc.exists:
-        price = settings_doc.to_dict().get('pro_price', 2990)
+        price = settings_doc.to_dict().get('pro_price', 200)
 
     # Busca Usuários
     users_ref = db.collection('users')
@@ -654,9 +654,9 @@ def create_checkout():
         # Busca preço dinâmico do banco de dados
         settings_ref = db.collection('settings').document('general')
         settings_doc = settings_ref.get()
-        price = 2990 # Valor padrão
+        price = 200 # Valor padrão
         if settings_doc.exists:
-            price = settings_doc.to_dict().get('pro_price', 2990)
+            price = settings_doc.to_dict().get('pro_price', 200)
 
         # --- INTEGRAÇÃO DIRETA VIA ENDPOINT PIX QR CODE ---
         url = "https://api.abacatepay.com/v1/pixQrCode/create"
@@ -756,44 +756,48 @@ def abacate_webhook():
         try:
             # Navegação segura no JSON (suporta variações da estrutura)
             payload_data = data.get('data', {})
-            billing = payload_data.get('billing') or payload_data
             
-            if not billing:
-                logger.error("Objeto 'billing' não encontrado no payload.")
-                return jsonify({"status": "ignored", "reason": "no_billing"}), 200
-
-            customer = billing.get('customer')
-            billing_metadata = billing.get('metadata', {})
+            # Detecta se é payload de PIX (pixQrCode) ou Billing padrão
+            pix_qr = payload_data.get('pixQrCode')
+            billing = payload_data.get('billing')
+            
             user_uid = None
             customer_email = None
 
-            # CENÁRIO A: Customer é um objeto completo (Dicionário)
-            if isinstance(customer, dict):
-                cust_metadata = customer.get('metadata', {})
-                # Tenta pegar userId do metadata, se existir
-                user_uid = cust_metadata.get('userId') 
+            if pix_qr:
+                # Lógica para PIX QR Code (conforme seu log)
+                metadata = pix_qr.get('metadata', {})
+                user_uid = metadata.get('userId')
+            elif billing:
+                # Lógica para Billing
+                customer = billing.get('customer')
+                billing_metadata = billing.get('metadata', {})
+
+                # CENÁRIO A: Customer é um objeto completo (Dicionário)
+                if isinstance(customer, dict):
+                    cust_metadata = customer.get('metadata', {})
+                    user_uid = cust_metadata.get('userId') 
+                    customer_email = customer.get('email') or cust_metadata.get('email')
                 
-                # O email pode estar na raiz do customer ou dentro do metadata (conforme log recebido)
-                customer_email = customer.get('email') or cust_metadata.get('email')
-            
-            # CENÁRIO B: Customer é apenas um ID (String) - BUSCA NA API
-            elif isinstance(customer, str):
-                logger.info(f"Customer ID recebido ({customer}). Buscando detalhes na API...")
-                api_key = os.environ.get("ABACATE_API_KEY")
-                if api_key:
-                    headers = {"Authorization": f"Bearer {api_key}"}
-                    # Busca dados do cliente para recuperar o userId do metadata
-                    resp = requests.get(f"https://api.abacatepay.com/v1/customers/{customer}", headers=headers)
-                    if resp.ok:
-                        cust_data = resp.json().get('data', {})
-                        user_uid = cust_data.get('metadata', {}).get('userId')
-                        customer_email = cust_data.get('email')
-                    else:
-                        logger.error(f"Falha ao buscar customer na API: {resp.text}")
-            
-            # Tenta pegar UID do metadata do billing se não achou no customer
-            if not user_uid:
-                user_uid = billing_metadata.get('userId')
+                # CENÁRIO B: Customer é apenas um ID (String) - BUSCA NA API
+                elif isinstance(customer, str):
+                    logger.info(f"Customer ID recebido ({customer}). Buscando detalhes na API...")
+                    api_key = os.environ.get("ABACATE_API_KEY")
+                    if api_key:
+                        headers = {"Authorization": f"Bearer {api_key}"}
+                        resp = requests.get(f"https://api.abacatepay.com/v1/customers/{customer}", headers=headers)
+                        if resp.ok:
+                            cust_data = resp.json().get('data', {})
+                            user_uid = cust_data.get('metadata', {}).get('userId')
+                            customer_email = cust_data.get('email')
+                        else:
+                            logger.error(f"Falha ao buscar customer na API: {resp.text}")
+                
+                if not user_uid:
+                    user_uid = billing_metadata.get('userId')
+            else:
+                # Fallback: Tenta pegar metadata direto de data
+                user_uid = payload_data.get('metadata', {}).get('userId')
 
             user_ref = None
             uid_log = None
@@ -832,6 +836,16 @@ def abacate_webhook():
             
     # 4. Tratamento de Erros e Resposta (Eventos ignorados)
     return jsonify({"status": "ignored", "reason": f"event_{event}_not_handled"}), 200
+
+@app.route('/api/check_status', methods=['GET'])
+def check_payment_status():
+    user_token = get_user_from_token()
+    if not user_token: return jsonify({"status": "error"}), 401
+    
+    doc = db.collection('users').document(user_token['uid']).get()
+    if doc.exists and doc.to_dict().get('plan') == 'pro':
+        return jsonify({"status": "approved"})
+    return jsonify({"status": "pending"})
 
 @app.route('/send', methods=['POST'])
 def send_message():
