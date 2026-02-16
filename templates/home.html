@@ -245,6 +245,7 @@
                       class="w-full p-2 bg-gray-50 border border-gray-300 rounded text-gray-800"
                       placeholder="Ex: dQw4w9WgXcQ"
                       required
+                      title="Copie o ID da URL do vídeo (após v=)"
                     />
                   </div>
 
@@ -278,8 +279,26 @@
                       name="message"
                       rows="3"
                       class="w-full p-2 bg-gray-50 border border-gray-300 rounded text-gray-800"
+                      placeholder="Escreva algo relevante sobre o vídeo..."
                       required
                     ></textarea>
+                    <div class="flex justify-between items-start mt-1">
+                      <span id="charCount" class="text-[10px] text-gray-400"
+                        >0/200 caracteres recomendados</span
+                      >
+                      <span
+                        id="validationMsg"
+                        class="text-[10px] font-bold hidden"
+                      ></span>
+                    </div>
+                  </div>
+
+                  <div
+                    id="spamWarning"
+                    class="hidden p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800 mb-2"
+                  >
+                    ⚠️ <strong>Atenção:</strong> Sua mensagem contém termos que
+                    podem ser filtrados pelo YouTube.
                   </div>
 
                   <div class="bg-gray-50 p-3 rounded border border-gray-200">

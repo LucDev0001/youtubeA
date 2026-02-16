@@ -422,3 +422,84 @@ if (autoModeCheckbox) {
     else options.classList.add("hidden");
   });
 }
+
+// --- Validação de Mensagem em Tempo Real ---
+const messageInput = document.querySelector('textarea[name="message"]');
+const charCount = document.getElementById("charCount");
+const validationMsg = document.getElementById("validationMsg");
+const spamWarning = document.getElementById("spamWarning");
+const submitBtn = document.getElementById("btnSubmit");
+
+// Lista de termos sensíveis (Spam triggers comuns)
+const forbiddenTerms = [
+  "inscreva-se no meu canal",
+  "sub4sub",
+  "troco inscritos",
+  "ganhe dinheiro",
+  "clique aqui",
+  "acesse meu site",
+  "xxx",
+  "porn",
+];
+
+if (messageInput) {
+  messageInput.addEventListener("input", function () {
+    const text = this.value;
+    const len = text.length;
+
+    // Atualiza contador
+    charCount.innerText = `${len}/200 caracteres recomendados`;
+    if (len > 200) charCount.classList.add("text-orange-500");
+    else charCount.classList.remove("text-orange-500");
+
+    let isValid = true;
+    let errorText = "";
+
+    // 1. Verifica Links (YouTube odeia links em comentários)
+    const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|(\.[a-z]{2,}\/)/i;
+    if (urlRegex.test(text)) {
+      isValid = false;
+      errorText = "🚫 Links não são permitidos (risco de ban)";
+    }
+
+    // 2. Verifica Palavras Proibidas
+    if (isValid) {
+      for (let term of forbiddenTerms) {
+        if (text.toLowerCase().includes(term)) {
+          isValid = false;
+          errorText = "🚫 Termo suspeito de spam detectado";
+          break;
+        }
+      }
+    }
+
+    // Atualiza UI
+    if (!isValid) {
+      validationMsg.innerText = errorText;
+      validationMsg.className = "text-[10px] font-bold text-red-600";
+      validationMsg.classList.remove("hidden");
+      messageInput.classList.add("border-red-500", "focus:border-red-500");
+      submitBtn.disabled = true;
+      submitBtn.classList.add("opacity-50", "cursor-not-allowed");
+    } else {
+      validationMsg.classList.add("hidden");
+      messageInput.classList.remove("border-red-500", "focus:border-red-500");
+
+      // Só reativa se não estiver rodando automação
+      if (!isRunning) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove("opacity-50", "cursor-not-allowed");
+      }
+    }
+
+    // Aviso amarelo para CAPS LOCK excessivo (não bloqueia, só avisa)
+    const upperCaseCount = text.replace(/[^A-Z]/g, "").length;
+    if (len > 10 && upperCaseCount > len * 0.7) {
+      spamWarning.classList.remove("hidden");
+      spamWarning.innerHTML =
+        "⚠️ <strong>Cuidado:</strong> Excesso de maiúsculas pode ser considerado grito/spam.";
+    } else {
+      spamWarning.classList.add("hidden");
+    }
+  });
+}
