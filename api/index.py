@@ -9,7 +9,7 @@ import urllib.parse
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from flask import Flask, request, render_template, jsonify, session, redirect, url_for, send_from_directory
+from flask import Flask, request, render_template, jsonify, session, redirect, url_for, send_from_directory, make_response
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
@@ -548,6 +548,40 @@ def favicon():
 def apple_touch_icon():
     return send_from_directory(os.path.join(app.root_path, '..'), 'apple-touch-icon.png', mimetype='image/png')
 
+# --- SEO & GOOGLE SEARCH CONSOLE ---
+
+@app.route('/robots.txt')
+def robots_txt():
+    """Arquivo para orientar crawlers do Google"""
+    base_url = request.host_url.rstrip('/')
+    content = f"User-agent: *\nAllow: /\nSitemap: {base_url}/sitemap.xml"
+    response = make_response(content)
+    response.headers["Content-Type"] = "text/plain"
+    return response
+
+@app.route('/sitemap.xml')
+def sitemap_xml():
+    """Mapa do site para indexação rápida"""
+    base_url = request.host_url.rstrip('/')
+    # Lista de páginas públicas que devem aparecer no Google
+    pages = ['/', '/login', '/plans', '/terms', '/privacy']
+    
+    xml = '<?xml version="1.0" encoding="UTF-8"?>'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+    
+    for page in pages:
+        xml += '<url>'
+        xml += f'<loc>{base_url}{page}</loc>'
+        xml += '<changefreq>weekly</changefreq>'
+        xml += '<priority>0.8</priority>'
+        xml += '</url>'
+        
+    xml += '</urlset>'
+    
+    response = make_response(xml)
+    response.headers["Content-Type"] = "application/xml"
+    return response
+
 # --- ROTAS ADMIN ---
 @app.route('/admin')
 def admin_page():
@@ -1049,19 +1083,6 @@ def delete_template(template_id):
     
     db.collection('users').document(uid).collection('templates').document(template_id).delete()
     return jsonify({"status": "success", "message": "Template removido."})
-
-@app.route('/api/generate_ai', methods=['POST'])
-def generate_ai_comment():
-    user = get_user_from_token()
-    if not user: return jsonify({"status": "error", "message": "Não autenticado"}), 401
-    data = request.get_json()
-    video_title = data.get('title', '')
-    if not video_title: return jsonify({"status": "error", "message": "Título do vídeo não encontrado."}), 400
-    clean_title = video_title.split('|')[0].split('-')[0].strip()
-    intros = ["Ótimo vídeo sobre", "Muito bom ver conteúdo sobre", "Interessante essa abordagem de", "Sempre aprendendo mais sobre", "Top demais esse vídeo de"]
-    compliments = ["ficou muito bem explicado!", "ajudou demais.", "conteúdo de primeira.", "like garantido!", "parabéns pelo trabalho!"]
-    suggestion = f"{random.choice(intros)} {clean_title}, {random.choice(compliments)}"
-    return jsonify({"status": "success", "suggestion": suggestion})
 
 @app.route('/send', methods=['POST'])
 def send_message():

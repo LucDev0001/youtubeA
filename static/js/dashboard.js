@@ -617,32 +617,3 @@ async function deleteTemplate(id) {
     alert("Erro ao apagar.");
   }
 }
-
-async function generateAI() {
-  const title = document.getElementById("vidTitle").innerText;
-  if (!title)
-    return alert("Carregue um vídeo primeiro (clique em um vídeo do feed).");
-  const textarea = document.querySelector('textarea[name="message"]');
-  textarea.value = "Gerando sugestão...";
-  try {
-    const res = await fetch("/api/generate_ai", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${userToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ title: title }),
-    });
-    const data = await res.json();
-    if (data.status === "success") {
-      textarea.value = data.suggestion;
-      textarea.dispatchEvent(new Event("input"));
-    } else {
-      textarea.value = "";
-      alert(data.message);
-    }
-  } catch (e) {
-    textarea.value = "";
-    alert("Erro na IA.");
-  }
-}
