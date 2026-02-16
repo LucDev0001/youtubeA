@@ -633,7 +633,7 @@ def create_checkout():
     user_token = get_user_from_token()
     if not user_token: return jsonify({"status": "error", "message": "Não autenticado"}), 401
     
-    # Pegue sua API Key no painel do Abacate Pay -> Desenvolvedor
+    # Pegue sua API Key no painel do AbacatePay -> Desenvolvedor
     api_key = os.environ.get("ABACATE_API_KEY")
     if not api_key:
         return jsonify({"status": "error", "message": "Configuração de pagamento incompleta no servidor"}), 500
@@ -649,7 +649,7 @@ def create_checkout():
         email = user_data.get('email') or user_token.get('email')
         phone = user_data.get('phone') or "11999999999"
         cpf = user_data.get('cpf') or "12345678909"
-
+        
         # Busca preço dinâmico do banco de dados
         settings_ref = db.collection('settings').document('general')
         settings_doc = settings_ref.get()
@@ -657,75 +657,43 @@ def create_checkout():
         if settings_doc.exists:
             price = settings_doc.to_dict().get('pro_price', 2990)
 
-        client = abacatepay.AbacatePay(api_key)
-
-        # 1. Criar o cliente primeiro para obter o ID
-        customer = client.customers.create(
-            name=name,
-            email=email,
-            cellphone=phone,
-            taxId=cpf,
-            metadata={"userId": uid}
-        )
+        # --- INTEGRAÇÃO DIRETA VIA ENDPOINT PIX QR CODE ---
+        url = "https://api.abacatepay.com/v1/pixQrCode/create"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
         
-        logger.info(f"Customer criado: {customer}")
+        payload = {
+            "amount": price, # Valor em centavos
+            "expiresIn": 3600, # 1 hora
+            "description": "Plano PRO - YouTube Growth Bot",
+            "customer": {
+                "name": name,
+                "cellphone": phone,
+                "email": email,
+                "taxId": cpf
+            },
+            "metadata": {
+                "userId": uid
+            }
+        }
         
-        # Garante que pegamos o ID corretamente (objeto ou dict)
-        customer_id = None
-        if isinstance(customer, dict):
-            customer_id = customer.get('id') or customer.get('data', {}).get('id')
-        else:
-            customer_id = getattr(customer, 'id', None)
-            if not customer_id and hasattr(customer, 'data'):
-                data_obj = customer.data
-                customer_id = data_obj.get('id') if isinstance(data_obj, dict) else getattr(data_obj, 'id', None)
-
-        if not customer_id:
-            raise ValueError(f"ID do cliente não encontrado. Resposta: {customer}")
-
-        billing = client.billing.create(
-            frequency="ONE_TIME",
-            methods=["PIX"],
-            products=[
-                {
-                    "external_id": "plan-pro",
-                    "name": "Plano PRO - YouTube Growth Bot",
-                    "description": "Acesso ilimitado ao bot e recursos premium",
-                    "quantity": 1,
-                    "price": price # Usa o preço do banco de dados
-                }
-            ],
-            return_url=request.host_url + "thank-you",
-            completion_url=request.host_url + "thank-you",
-            customer_id=customer_id
-        )
+        response = requests.post(url, json=payload, headers=headers)
         
-        logger.info(f"Billing criado: {billing}")
-        
-        # Extração de dados para Checkout Transparente
-        pix_code = None
-        qr_code = None
-        
-        try:
-            # Tenta extrair dados do PIX se disponíveis no objeto billing
-            if hasattr(billing, 'pix') and billing.pix:
-                p = billing.pix
-                # Suporta acesso como dict ou atributo (dependendo da versão da lib)
-                if isinstance(p, dict):
-                    pix_code = p.get('code')
-                    qr_code = p.get('qr_code') or p.get('qrCode')
-                else:
-                    pix_code = getattr(p, 'code', None)
-                    qr_code = getattr(p, 'qr_code', None) or getattr(p, 'qrCode', None)
-        except Exception as e:
-            logger.warning(f"Erro ao extrair dados PIX para checkout transparente: {e}")
+        if not response.ok:
+            logger.error(f"Erro AbacatePay: {response.text}")
+            return jsonify({"status": "error", "message": "Falha ao gerar PIX"}), 500
+            
+        data = response.json()
+        res_data = data.get('data', {})
 
         return jsonify({
             "status": "success", 
-            "url": billing.url,
+            "url": res_data.get('url'), # URL do QR Code como fallback
             "pix": {
-                "code": pix_code,
-                "qr_code": qr_code
+                "code": res_data.get('pixCopyPaste'),
+                "qr_code": res_data.get('url')
             }
         })
     except Exception as e:
@@ -774,17 +742,18 @@ def abacate_webhook():
                 return jsonify({"status": "ignored", "reason": "no_billing"}), 200
 
             customer = billing.get('customer')
+            billing_metadata = billing.get('metadata', {})
             user_uid = None
             customer_email = None
 
             # CENÁRIO A: Customer é um objeto completo (Dicionário)
             if isinstance(customer, dict):
-                metadata = customer.get('metadata', {})
+                cust_metadata = customer.get('metadata', {})
                 # Tenta pegar userId do metadata, se existir
-                user_uid = metadata.get('userId') 
+                user_uid = cust_metadata.get('userId') 
                 
                 # O email pode estar na raiz do customer ou dentro do metadata (conforme log recebido)
-                customer_email = customer.get('email') or metadata.get('email')
+                customer_email = customer.get('email') or cust_metadata.get('email')
             
             # CENÁRIO B: Customer é apenas um ID (String) - BUSCA NA API
             elif isinstance(customer, str):
@@ -801,6 +770,10 @@ def abacate_webhook():
                     else:
                         logger.error(f"Falha ao buscar customer na API: {resp.text}")
             
+            # Tenta pegar UID do metadata do billing se não achou no customer
+            if not user_uid:
+                user_uid = billing_metadata.get('userId')
+
             user_ref = None
             uid_log = None
 
