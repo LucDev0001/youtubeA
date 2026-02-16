@@ -688,10 +688,18 @@ def create_checkout():
             return jsonify({"status": "error", "message": f"Erro no pagamento: {response.text}"}), 500
             
         data = response.json()
+        logger.info(f"AbacatePay Response: {json.dumps(data)}") # Log para debug
+        
         # Tenta pegar de 'data' ou usa a raiz do JSON (fallback para variações da API)
         res_data = data.get('data', data)
         
+        # Tenta encontrar o código PIX em vários campos possíveis
         pix_code = res_data.get('pixCopyPaste')
+        if not pix_code:
+            pix_code = res_data.get('emv') # Algumas APIs usam 'emv'
+        if not pix_code and 'pix' in res_data:
+            pix_code = res_data['pix'].get('code') or res_data['pix'].get('pixCopyPaste')
+            
         checkout_url = res_data.get('url')
         
         # Gera a imagem do QR Code usando QuickChart (mais robusto para strings longas)
