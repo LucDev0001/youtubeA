@@ -921,6 +921,53 @@ def check_payment_status():
         return jsonify({"status": "approved"})
     return jsonify({"status": "pending"})
 
+@app.route('/api/request_refund', methods=['POST'])
+def request_refund():
+    user_token = get_user_from_token()
+    if not user_token: return jsonify({"status": "error", "message": "Não autenticado"}), 401
+    
+    uid = user_token['uid']
+    user_ref = db.collection('users').document(uid)
+    user_doc = user_ref.get()
+    
+    if not user_doc.exists:
+        return jsonify({"status": "error", "message": "Usuário não encontrado"}), 404
+        
+    data = user_doc.to_dict()
+    
+    if data.get('plan') != 'pro':
+        return jsonify({"status": "error", "message": "Você não tem um plano ativo."}), 400
+        
+    updated_at = data.get('updated_at')
+    
+    # Verifica validade de 7 dias
+    if updated_at:
+        # Converte para datetime se for timestamp do firestore ou string
+        if hasattr(updated_at, 'timestamp'):
+            last_update = datetime.datetime.fromtimestamp(updated_at.timestamp())
+        elif isinstance(updated_at, str):
+            try:
+                last_update = datetime.datetime.fromisoformat(updated_at)
+            except:
+                last_update = datetime.datetime.now()
+        else:
+            last_update = updated_at.replace(tzinfo=None) if updated_at.tzinfo else updated_at
+
+        delta = datetime.datetime.now() - last_update
+        if delta.days > 7:
+             return jsonify({"status": "error", "message": "O prazo de garantia de 7 dias já expirou."}), 400
+
+    # Envia E-mail para o Admin (Você)
+    user_email = data.get('email', 'Email não encontrado')
+    admin_email = "lucianosantosseverino@gmail.com"
+    
+    subject = f"🚨 SOLICITAÇÃO DE REEMBOLSO - {user_email}"
+    body = f"<h1>Solicitação de Reembolso</h1><p>O usuário <strong>{user_email}</strong> (UID: {uid}) solicitou reembolso dentro do prazo de 7 dias.</p><p>Acesse o painel do AbacatePay e faça o estorno do PIX manualmente.</p>"
+    
+    send_system_email(admin_email, subject, body)
+    
+    return jsonify({"status": "success", "message": "Solicitação enviada. O suporte entrará em contato em até 24h."})
+
 @app.route('/send', methods=['POST'])
 def send_message():
     user = get_user_from_token()
