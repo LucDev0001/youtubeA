@@ -57,6 +57,29 @@
               placeholder="11999999999"
             />
           </div>
+          <div class="flex items-start gap-2">
+            <input
+              type="checkbox"
+              id="termsCheckbox"
+              class="mt-1 accent-red-600"
+            />
+            <label for="termsCheckbox" class="text-sm text-gray-400">
+              Li e aceito os
+              <a
+                href="/terms"
+                target="_blank"
+                class="text-red-500 hover:underline"
+                >Termos de Uso</a
+              >
+              e
+              <a
+                href="/privacy"
+                target="_blank"
+                class="text-red-500 hover:underline"
+                >Política de Privacidade</a
+              >.
+            </label>
+          </div>
         </div>
 
         <div>
@@ -179,9 +202,15 @@
               const name = document.getElementById("nameInput").value;
               const cpf = document.getElementById("cpfInput").value;
               const phone = document.getElementById("phoneInput").value;
+              const terms = document.getElementById("termsCheckbox").checked;
 
               if (!name || !cpf || !phone)
                 return alert("Preencha todos os campos para cadastro.");
+
+              if (!terms)
+                return alert(
+                  "Você precisa aceitar os Termos de Uso para criar uma conta.",
+                );
 
               const cred = await auth.createUserWithEmailAndPassword(
                 email,
@@ -196,6 +225,7 @@
                   plan: "free",
                   credits: 10,
                   created_at: new Date(),
+                  terms_accepted_at: new Date(),
                   email: email,
                   name: name,
                   cpf: cpf.replace(/\D/g, ""), // Remove formatação

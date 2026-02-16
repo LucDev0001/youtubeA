@@ -3,119 +3,99 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Política de Privacidade - YouTube Bot</title>
-    <style>
-      body {
-        font-family: "Segoe UI", Roboto, sans-serif;
-        line-height: 1.6;
-        padding: 20px;
-        max-width: 800px;
-        margin: 0 auto;
-        color: #333;
-        background-color: #f4f4f4;
-      }
-      h1,
-      h2 {
-        color: #cc0000;
-      }
-      .container {
-        background: #fff;
-        padding: 40px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      }
-      a {
-        color: #0066cc;
-        text-decoration: none;
-      }
-      a:hover {
-        text-decoration: underline;
-      }
-    </style>
+    <title>Política de Privacidade - Abot Youtube</title>
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
-    <div class="container">
-      <h1>Política de Privacidade</h1>
-      <p><strong>Última atualização:</strong> 24 de Maio de 2024</p>
+  <body class="bg-[#0f0f0f] text-gray-300 font-sans">
+    <div class="max-w-4xl mx-auto px-6 py-12">
+      <h1 class="text-3xl font-bold text-white mb-8">
+        Política de Privacidade
+      </h1>
 
-      <h2>1. Introdução</h2>
-      <p>
-        O <strong>YouTube Bot Controller</strong> ("nós", "nosso") valoriza a
-        sua privacidade. Esta Política de Privacidade descreve como coletamos,
-        usamos e protegemos as informações quando você utiliza nosso aplicativo.
-      </p>
+      <div class="space-y-8">
+        <section>
+          <h2 class="text-xl font-bold text-white mb-2">
+            1. Dados que Coletamos
+          </h2>
+          <p>
+            Para que o Abot funcione, precisamos acessar algumas informações
+            limitadas:
+          </p>
+          <ul class="list-disc pl-5 mt-2 text-sm space-y-1">
+            <li>
+              <strong>Identificação:</strong> Seu e-mail e ID de usuário (via
+              Login do Google).
+            </li>
+            <li>
+              <strong>Credenciais:</strong> Tokens de acesso temporários para
+              falar com o YouTube em seu nome.
+            </li>
+            <li>
+              <strong>Perfil Público:</strong> Nome do canal e foto de perfil.
+            </li>
+          </ul>
+        </section>
 
-      <h2>2. Dados que Coletamos</h2>
-      <p>
-        Para fornecer nossos serviços de automação e interação, utilizamos a API
-        do YouTube Services. Coletamos e processamos temporariamente os
-        seguintes dados:
-      </p>
-      <ul>
-        <li>
-          <strong>Informações de Autenticação:</strong> Utilizamos sua conta
-          Google para realizar o login seguro (OAuth 2.0).
-        </li>
-        <li>
-          <strong>Dados do YouTube:</strong> Acessamos a lista de suas
-          inscrições, detalhes de vídeos e transmissões ao vivo para exibir no
-          painel.
-        </li>
-        <li>
-          <strong>Interações:</strong> Enviamos comentários e mensagens de chat
-          em seu nome apenas quando você solicita explicitamente através da
-          interface do usuário.
-        </li>
-      </ul>
+        <section>
+          <h2 class="text-xl font-bold text-white mb-2">
+            2. Como Usamos seus Dados
+          </h2>
+          <p>
+            O Abot Youtube utiliza os Serviços de API do YouTube. Ao usar nosso
+            aplicativo, você concorda com a
+            <a
+              href="http://www.google.com/policies/privacy"
+              target="_blank"
+              class="text-red-500 hover:underline"
+              >Política de Privacidade do Google</a
+            >.
+          </p>
+          <p class="mt-2">
+            Seus dados são usados <strong>exclusivamente</strong> para:
+          </p>
+          <ul class="list-disc pl-5 mt-2 text-sm space-y-1">
+            <li>Autenticar sua conta no sistema.</li>
+            <li>Buscar vídeos e canais que você solicitou no painel.</li>
+            <li>Publicar os comentários ou mensagens que você escreveu.</li>
+          </ul>
+          <div
+            class="mt-4 p-4 bg-[#161616] border-l-4 border-green-500 rounded-r"
+          >
+            <p class="text-white font-bold">Compromisso de Privacidade:</p>
+            <p class="text-sm">
+              Nós NÃO vendemos, alugamos ou compartilhamos seus dados de
+              navegação, tokens ou histórico de uso com terceiros ou
+              anunciantes.
+            </p>
+          </div>
+        </section>
 
-      <h2>3. Como Usamos seus Dados</h2>
-      <p>As informações são utilizadas exclusivamente para:</p>
-      <ul>
-        <li>Autenticar sua identidade e manter sua sessão ativa.</li>
-        <li>Exibir vídeos recentes dos canais que você segue.</li>
-        <li>Executar as ações de envio de mensagens configuradas por você.</li>
-      </ul>
-      <p>
-        Nós <strong>não</strong> armazenamos seus dados pessoais, histórico de
-        mensagens ou credenciais permanentemente em nossos servidores. As
-        credenciais de acesso (tokens) são mantidas apenas na sessão
-        criptografada do seu navegador enquanto você estiver logado.
-      </p>
+        <section>
+          <h2 class="text-xl font-bold text-white mb-2">
+            3. Revogação de Acesso
+          </h2>
+          <p>
+            Você tem total controle. Pode revogar o acesso do Abot Youtube aos
+            seus dados a qualquer momento através da página de
+            <a
+              href="https://security.google.com/settings/security/permissions"
+              target="_blank"
+              class="text-red-500 hover:underline"
+              >Configurações de Segurança do Google</a
+            >.
+          </p>
+          <p class="mt-2">
+            Ao desconectar sua conta no nosso painel, removemos seus tokens de
+            acesso do nosso banco de dados imediatamente.
+          </p>
+        </section>
+      </div>
 
-      <h2>4. Compartilhamento de Dados</h2>
-      <p>
-        Não compartilhamos suas informações pessoais com terceiros. A única
-        troca de dados ocorre diretamente entre o aplicativo e os servidores do
-        Google/YouTube para o funcionamento da API.
-      </p>
-
-      <h2>5. Dados do Usuário do Google</h2>
-      <p>
-        O uso das informações recebidas das APIs do Google por este aplicativo
-        adere à
-        <a
-          href="https://developers.google.com/terms/api-services-user-data-policy"
-          target="_blank"
-          >Política de Dados do Usuário dos Serviços de API do Google</a
-        >, incluindo os requisitos de Uso Limitado.
-      </p>
-
-      <h2>6. Termos de Serviço do YouTube</h2>
-      <p>
-        Ao usar este aplicativo, você também concorda com a
-        <a href="https://www.google.com/policies/privacy/" target="_blank"
-          >Política de Privacidade do Google</a
-        >.
-      </p>
-
-      <h2>7. Contato</h2>
-      <p>
-        Se tiver dúvidas sobre esta política ou sobre as práticas de privacidade
-        deste aplicativo, entre em contato com o desenvolvedor.
-      </p>
-
-      <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee" />
-      <p><a href="/">← Voltar para a Página Inicial</a></p>
+      <div class="mt-12 pt-8 border-t border-gray-800 text-center">
+        <a href="/" class="text-gray-500 hover:text-white transition"
+          >Voltar para a Home</a
+        >
+      </div>
     </div>
   </body>
 </html>

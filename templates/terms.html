@@ -3,93 +3,121 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Termos de Uso - YouTube Bot</title>
-    <style>
-      body {
-        font-family: "Segoe UI", Roboto, sans-serif;
-        line-height: 1.6;
-        padding: 20px;
-        max-width: 800px;
-        margin: 0 auto;
-        color: #333;
-        background-color: #f4f4f4;
-      }
-      h1,
-      h2 {
-        color: #cc0000;
-      }
-      .container {
-        background: #fff;
-        padding: 40px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      }
-      a {
-        color: #0066cc;
-        text-decoration: none;
-      }
-      a:hover {
-        text-decoration: underline;
-      }
-    </style>
+    <title>Termos de Uso - Abot Youtube</title>
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
-    <div class="container">
-      <h1>Termos de Uso</h1>
-      <p><strong>Última atualização:</strong> 24 de Maio de 2024</p>
+  <body class="bg-[#0f0f0f] text-gray-300 font-sans">
+    <div class="max-w-4xl mx-auto px-6 py-12">
+      <h1 class="text-3xl font-bold text-white mb-8">Termos de Uso</h1>
 
-      <h2>1. Aceitação dos Termos</h2>
-      <p>
-        Ao acessar e usar o <strong>YouTube Bot Controller</strong>, você
-        concorda em cumprir estes Termos de Uso, todas as leis e regulamentos
-        aplicáveis, e concorda que é responsável pelo cumprimento de todas as
-        leis locais aplicáveis.
-      </p>
+      <div class="space-y-8">
+        <section>
+          <h2 class="text-xl font-bold text-white mb-2">
+            1. Aceitação dos Termos
+          </h2>
+          <p>
+            Ao acessar e usar o Abot Youtube, você concorda em cumprir estes
+            termos e os
+            <a
+              href="https://www.youtube.com/t/terms"
+              target="_blank"
+              class="text-red-500 hover:underline"
+              >Termos de Serviço do YouTube</a
+            >.
+          </p>
+        </section>
 
-      <h2>2. Uso do Serviço</h2>
-      <p>
-        Este aplicativo foi desenvolvido para auxiliar na interação com vídeos e
-        lives do YouTube. Ao utilizá-lo, você concorda em seguir os
-        <a href="https://www.youtube.com/t/terms" target="_blank"
-          >Termos de Serviço do YouTube</a
-        >.
-      </p>
-      <p>É estritamente proibido usar este serviço para:</p>
-      <ul>
-        <li>
-          Enviar spam, mensagens repetitivas não solicitadas ou conteúdo
-          enganoso.
-        </li>
-        <li>Assediar, intimidar ou ameaçar outros usuários.</li>
-        <li>Violar direitos autorais ou de propriedade intelectual.</li>
-      </ul>
+        <!-- SEÇÃO DE CASUALIDADES DA API -->
+        <section
+          class="bg-[#161616] p-6 rounded-xl border border-red-900/50 shadow-lg"
+        >
+          <h2 class="text-xl font-bold text-red-500 mb-3">
+            ⚠️ 2. Limitações e Dependência do YouTube
+          </h2>
+          <p class="mb-4 text-gray-400">
+            O Abot Youtube funciona como um "assistente" que opera dentro da
+            plataforma do YouTube. Por isso, estamos sujeitos às regras e
+            estabilidade deles. É importante que você entenda:
+          </p>
 
-      <h2>3. Isenção de Responsabilidade</h2>
-      <p>
-        O serviço é fornecido "como está". Não oferecemos garantias, expressas
-        ou implícitas, e por este meio isentamos e negamos todas as outras
-        garantias, incluindo, sem limitação, garantias implícitas ou condições
-        de comercialização, adequação a um fim específico ou não violação de
-        propriedade intelectual.
-      </p>
+          <div class="space-y-4">
+            <div class="flex gap-3">
+              <span class="text-2xl">🚦</span>
+              <div>
+                <strong class="text-white"
+                  >Pausas de Segurança (Rate Limits):</strong
+                >
+                <p class="text-sm">
+                  O YouTube não permite envios muito rápidos. Se você tentar
+                  enviar muitas mensagens em poucos segundos, o YouTube pode
+                  impor uma pausa temporária. Isso é normal e serve para
+                  proteger sua conta.
+                </p>
+              </div>
+            </div>
 
-      <h2>4. Limitações</h2>
-      <p>
-        Em nenhum caso o YouTube Bot Controller ou seus desenvolvedores serão
-        responsáveis por quaisquer danos (incluindo, sem limitação, danos por
-        perda de dados ou lucro, ou devido a interrupção dos negócios)
-        decorrentes do uso ou da incapacidade de usar o serviço.
-      </p>
+            <div class="flex gap-3">
+              <span class="text-2xl">🔋</span>
+              <div>
+                <strong class="text-white"
+                  >Cota Diária (Energia do Bot):</strong
+                >
+                <p class="text-sm">
+                  O Google libera uma quantidade limitada de ações por dia para
+                  aplicativos. Se essa cota global for atingida, o serviço pode
+                  ficar indisponível momentaneamente até que o Google renove a
+                  cota (geralmente na madrugada).
+                </p>
+              </div>
+            </div>
 
-      <h2>5. Modificações</h2>
-      <p>
-        Podemos revisar estes termos de serviço a qualquer momento sem aviso
-        prévio. Ao usar este site, você concorda em ficar vinculado à versão
-        atual desses Termos de Uso.
-      </p>
+            <div class="flex gap-3">
+              <span class="text-2xl">🔨</span>
+              <div>
+                <strong class="text-white">Alterações na Plataforma:</strong>
+                <p class="text-sm">
+                  O YouTube pode mudar suas regras ou desativar recursos a
+                  qualquer momento. O Abot não tem controle sobre essas decisões
+                  externas.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee" />
-      <p><a href="/">← Voltar para a Página Inicial</a></p>
+        <section>
+          <h2 class="text-xl font-bold text-white mb-2">
+            3. Responsabilidade pelo Uso (Anti-Spam)
+          </h2>
+          <p>
+            O Abot Youtube é uma ferramenta de produtividade, não de spam. Você
+            é o único responsável pelo conteúdo das mensagens enviadas.
+          </p>
+          <p class="mt-2">
+            O uso abusivo (mensagens repetitivas, links proibidos, discurso de
+            ódio) pode resultar em bloqueio do seu canal pelo próprio YouTube.
+            Use com sabedoria.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold text-white mb-2">
+            4. Reembolsos e Cancelamento
+          </h2>
+          <p>
+            Oferecemos garantia de 7 dias para reembolso integral conforme o
+            Código de Defesa do Consumidor. Após este período, o cancelamento
+            interrompe cobranças futuras, mas não gera reembolso proporcional
+            dos dias não utilizados.
+          </p>
+        </section>
+      </div>
+
+      <div class="mt-12 pt-8 border-t border-gray-800 text-center">
+        <a href="/" class="text-gray-500 hover:text-white transition"
+          >Voltar para a Home</a
+        >
+      </div>
     </div>
   </body>
 </html>
