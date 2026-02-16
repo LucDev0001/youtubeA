@@ -126,6 +126,17 @@
                     >Renovar Agora</a
                   >
                 </div>
+                <div
+                  id="refundArea"
+                  class="hidden mt-4 pt-4 border-t border-gray-800 text-center"
+                >
+                  <button
+                    onclick="requestRefund()"
+                    class="text-xs text-gray-500 underline hover:text-red-500"
+                  >
+                    Solicitar Reembolso (Garantia 7 dias)
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -248,6 +259,16 @@
 
                 document.getElementById("expirationDate").innerText =
                   expireDate.toLocaleDateString();
+
+                // Verifica se está dentro dos 7 dias para mostrar botão de reembolso
+                const diffTime = Math.abs(new Date() - updatedDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays <= 7) {
+                  document
+                    .getElementById("refundArea")
+                    .classList.remove("hidden");
+                }
               }
             } else {
               document
@@ -324,6 +345,29 @@
               alert("E-mail de redefinição enviado para " + user.email),
             )
             .catch((e) => alert("Erro: " + e.message));
+        }
+      }
+
+      async function requestRefund() {
+        if (
+          !confirm(
+            "Deseja solicitar o reembolso do seu plano? Seu acesso será revogado após o processamento.",
+          )
+        )
+          return;
+
+        const user = auth.currentUser;
+        const token = await user.getIdToken();
+
+        try {
+          const res = await fetch("/api/request_refund", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          alert(data.message);
+        } catch (e) {
+          alert("Erro ao solicitar: " + e.message);
         }
       }
 
