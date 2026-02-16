@@ -110,24 +110,22 @@
                   class="flex flex-col md:flex-row justify-between items-center gap-4"
                 >
                   <div>
-                    <p class="text-sm text-gray-400">
-                      Gerenciado por Abacate Pay
+                    <p class="text-sm text-gray-400 uppercase font-bold">
+                      Status da Assinatura
                     </p>
-                    <p class="font-bold text-white">
-                      Renovação Automática Mensal
+                    <p class="font-bold text-white text-lg">
+                      Vence em:
+                      <span id="expirationDate" class="text-green-400"
+                        >Calculando...</span
+                      >
                     </p>
                   </div>
                   <a
-                    href="https://abacatepay.com"
-                    target="_blank"
-                    class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded text-white text-sm border border-gray-600"
-                    >Acessar Portal de Pagamento</a
+                    href="/plans"
+                    class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded text-white text-sm font-bold shadow-lg shadow-red-900/20"
+                    >Renovar Agora</a
                   >
                 </div>
-                <p class="text-xs text-gray-500 mt-2">
-                  Para cancelar ou alterar forma de pagamento, verifique o
-                  e-mail de confirmação da assinatura enviado pelo Abacate Pay.
-                </p>
               </div>
             </div>
 
@@ -238,6 +236,19 @@
               document
                 .getElementById("subscriptionSection")
                 .classList.remove("hidden");
+
+              // Calcula data de expiração (Data de atualização + 30 dias)
+              if (data.updated_at) {
+                const updatedDate = data.updated_at.toDate
+                  ? data.updated_at.toDate()
+                  : new Date(data.updated_at);
+
+                const expireDate = new Date(updatedDate);
+                expireDate.setDate(expireDate.getDate() + 30);
+
+                document.getElementById("expirationDate").innerText =
+                  expireDate.toLocaleDateString();
+              }
             } else {
               document
                 .getElementById("upgradeSection")

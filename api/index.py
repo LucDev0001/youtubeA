@@ -6,6 +6,9 @@ import random
 import requests
 import re
 import urllib.parse
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from flask import Flask, request, render_template, jsonify, session, redirect, url_for, send_from_directory
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -729,6 +732,63 @@ def create_checkout():
         logger.error(f"Erro ao criar checkout: {error_msg}")
         return jsonify({"status": "error", "message": f"Erro no servidor: {error_msg}"}), 500
 
+# --- FUNÇÃO AUXILIAR DE EMAIL ---
+def send_system_email(to_email, subject, html_content):
+    """Envia e-mails usando SMTP (Gmail ou outro configurado)"""
+    smtp_server = "smtp.gmail.com"
+    smtp_port = 587
+    sender_email = os.environ.get("EMAIL_HOST_USER")
+    sender_password = os.environ.get("EMAIL_HOST_PASSWORD")
+
+    if not sender_email or not sender_password:
+        logger.warning("Credenciais de e-mail não configuradas. E-mail não enviado.")
+        return
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = f"Abot Youtube <{sender_email}>"
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(html_content, 'html'))
+
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, to_email, msg.as_string())
+        server.quit()
+        logger.info(f"E-mail enviado para {to_email}")
+    except Exception as e:
+        logger.error(f"Falha ao enviar e-mail: {e}")
+
+def get_email_template(user_name):
+    return f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 20px; border-radius: 10px;">
+        <div style="background-color: #cc0000; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">Abot Youtube 🤖</h1>
+        </div>
+        <div style="background-color: white; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #ddd;">
+            <h2 style="color: #333;">Parabéns, {user_name}! 🚀</h2>
+            <p style="color: #555; font-size: 16px; line-height: 1.5;">
+                Sua assinatura <strong>PRO</strong> foi confirmada com sucesso. Agora você tem acesso ilimitado ao poder da automação.
+            </p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+            <h3 style="color: #cc0000;">O que você ganhou:</h3>
+            <ul style="color: #555; line-height: 1.6;">
+                <li>✅ Envios Ilimitados</li>
+                <li>✅ Modo Automático (Loop)</li>
+                <li>✅ Suporte Prioritário</li>
+            </ul>
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="https://abot-youtube.vercel.app/app" style="background-color: #cc0000; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Acessar Painel Agora</a>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 20px; color: #888; font-size: 12px;">
+            <p>© 2024 Abot Youtube. Todos os direitos reservados.</p>
+            <p>Este é um e-mail automático, por favor não responda.</p>
+        </div>
+    </div>
+    """
+
 # --- WEBHOOK ABACATE PAY ---
 @app.route('/webhook/abacate', methods=['POST'])
 def abacate_webhook():
@@ -825,6 +885,20 @@ def abacate_webhook():
                 }, merge=True)
                 
                 logger.info(f"Plano PRO ativado para: {uid_log}")
+                
+                # --- ENVIO DE E-MAILS ---
+                try:
+                    # 1. Notificação para o Admin
+                    admin_msg = f"<h3>Novo Cliente PRO! 💰</h3><p>O usuário <strong>{uid_log}</strong> ({customer_email}) acabou de assinar o plano.</p>"
+                    send_system_email("lucianosantosseverino@gmail.com", "Nova Venda - Abot Youtube", admin_msg)
+                    
+                    # 2. Boas-vindas para o Cliente
+                    if customer_email:
+                        welcome_html = get_email_template(customer_email.split('@')[0])
+                        send_system_email(customer_email, "Bem-vindo ao Abot Youtube PRO! 💎", welcome_html)
+                except Exception as e:
+                    logger.error(f"Erro ao tentar enviar e-mails no webhook: {e}")
+
                 return jsonify({"status": "success"}), 200
             else:
                 logger.warning("Webhook recebido sem userId ou email válido.")

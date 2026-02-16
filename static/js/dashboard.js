@@ -35,7 +35,12 @@ async function checkUserStatus() {
     const planName = data.plan === "pro" ? "PRO 💎" : "Gratuito";
     const credits = data.credits || 0;
     const planEl = document.getElementById("planStatus");
-    if (planEl) planEl.innerText = `${planName} (${credits} créditos)`;
+    if (planEl) {
+      // Se for PRO, mostra "Ilimitado" em vez de 999999
+      const creditText =
+        data.plan === "pro" ? "Ilimitado" : `${credits} créditos`;
+      planEl.innerText = `${planName} (${creditText})`;
+    }
 
     if (data.plan !== "pro") {
       const upBtn = document.getElementById("upgradeBtn");
