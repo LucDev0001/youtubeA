@@ -320,6 +320,8 @@ def get_recent_videos():
     if not youtube: return jsonify({"status": "error", "message": "Canal YouTube não conectado."}), 400
     
     page_token = request.args.get('pageToken')
+    if not page_token:
+        page_token = None
     channel_filter = request.args.get('channelId')
     live_only = request.args.get('liveOnly') == 'true'
 
@@ -452,6 +454,13 @@ def get_recent_videos():
 
         return jsonify({"status": "success", "videos": videos, "nextPageToken": next_page_token})
 
+    except HttpError as e:
+        logger.error(f"YouTube API Error: {e}")
+        if e.resp.status in [403, 429]:
+             return jsonify({"status": "error", "message": "Cota da API excedida. Tente mais tarde."}), 429
+        return jsonify({"status": "error", "message": f"Erro na API do YouTube: {e}"}), 500
+    except RefreshError:
+        return jsonify({"status": "error", "message": "Sessão do YouTube expirada. Reconecte o canal."}), 401
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
