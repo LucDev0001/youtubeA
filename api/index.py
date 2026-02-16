@@ -612,6 +612,21 @@ def admin_update_price():
     
     return jsonify({"status": "success", "message": "Preço atualizado"})
 
+@app.route('/disconnect_youtube', methods=['POST'])
+def disconnect_youtube():
+    user = get_user_from_token()
+    if not user: return jsonify({"status": "error", "message": "Não autenticado."}), 401
+    
+    try:
+        db.collection('users').document(user['uid']).update({
+            'youtube_credentials': firestore.DELETE_FIELD,
+            'youtube_connected': False,
+            'youtube_channel': firestore.DELETE_FIELD
+        })
+        return jsonify({"status": "success", "message": "Conta desconectada."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # --- CRIAÇÃO DE CHECKOUT (INTEGRAÇÃO DIRETA) ---
 @app.route('/create_checkout', methods=['POST'])
 def create_checkout():

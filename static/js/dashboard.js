@@ -56,6 +56,9 @@ async function checkUserStatus() {
                 ${data.youtube_channel.thumbnail ? `<img src="${data.youtube_channel.thumbnail}" class="w-8 h-8 rounded-full">` : ""}
                 <span class="text-sm font-bold text-gray-700">${data.youtube_channel.title}</span>
             </div>
+            <button onclick="disconnectYoutube()" class="mt-2 text-xs text-red-500 hover:text-red-700 underline w-full text-left">
+                Desconectar conta Google
+            </button>
           `;
       }
 
@@ -80,6 +83,26 @@ async function checkUserStatus() {
 
 function connectYoutube() {
   window.location.href = `/connect_youtube?uid=${currentUser.uid}`;
+}
+
+async function disconnectYoutube() {
+  if (!confirm("Tem certeza que deseja desconectar o canal?")) return;
+
+  try {
+    const res = await fetch("/disconnect_youtube", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${userToken}` },
+    });
+    const data = await res.json();
+    if (data.status === "success") {
+      window.location.reload();
+    } else {
+      alert("Erro ao desconectar: " + data.message);
+    }
+  } catch (e) {
+    console.error(e);
+    alert("Erro de conexão.");
+  }
 }
 
 function logout() {
@@ -338,7 +361,7 @@ function selectChannelFilter(id, name) {
 }
 
 function loadMyVideos() {
-  currentChannelFilter = 'mine';
+  currentChannelFilter = "mine";
   const titleEl = document.getElementById("listTitle");
   titleEl.innerText = "Meus Vídeos";
   titleEl.classList.remove("hidden");

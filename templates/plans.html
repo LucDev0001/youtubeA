@@ -162,7 +162,8 @@
                   btn.innerText = "Assinar Agora";
                   btn.disabled = false;
                 } else if (data.url) {
-                  window.location.href = data.url; // Fallback para URL externa se não tiver PIX direto
+                  // Se não tiver PIX (ex: cartão), redireciona. Se quiser forçar PIX, remova este else if.
+                  window.location.href = data.url;
                 }
               } else {
                 alert("Erro: " + (data.message || "Tente novamente."));
