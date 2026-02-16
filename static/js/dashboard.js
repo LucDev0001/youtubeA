@@ -5,6 +5,7 @@ let isRunning = false;
 let currentNextPageToken = null;
 let currentChannelFilter = null;
 let liveFilterActive = false;
+let currentUserPlan = "free";
 
 // --- Autenticação e Inicialização ---
 auth.onAuthStateChanged(async (user) => {
@@ -30,6 +31,7 @@ async function checkUserStatus() {
   const doc = await db.collection("users").doc(currentUser.uid).get();
   if (doc.exists) {
     const data = doc.data();
+    currentUserPlan = data.plan || "free";
 
     // Atualiza UI do Plano
     const planName = data.plan === "pro" ? "PRO 💎" : "Gratuito";
@@ -188,19 +190,33 @@ document
         });
         const data = await response.json();
 
-        resultDiv.innerText = isAuto
-          ? `[${i}/${total}] ${data.message}`
-          : data.message;
-        const bgClass =
-          data.status === "success"
-            ? "bg-green-900 text-green-100"
-            : "bg-red-100 text-red-800";
-        resultDiv.className = `mt-4 text-center text-sm p-2.5 rounded ${bgClass}`;
+        const isSuccess = data.status === "success";
+        const icon = isSuccess ? "🎉" : "⚠️";
+
+        // Estilo moderno para mensagens
+        resultDiv.innerHTML = isAuto
+          ? `<span class="font-bold">${icon} [${i}/${total}]</span> ${data.message}`
+          : `<div class="flex flex-col items-center gap-1">
+               <span class="text-2xl">${icon}</span>
+               <span class="font-bold">${isSuccess ? "Enviado!" : "Ops, algo deu errado"}</span>
+               <span class="opacity-90">${data.message}</span>
+             </div>`;
+
+        const bgClass = isSuccess
+          ? "bg-green-600 text-white shadow-lg shadow-green-900/20"
+          : "bg-red-50 text-red-600 border border-red-200 shadow-sm";
+
+        resultDiv.className = `mt-4 text-center text-sm p-4 rounded-xl transition-all duration-300 ${bgClass}`;
         resultDiv.style.display = "block";
       } catch (err) {
-        resultDiv.innerText = `Erro de conexão na tentativa ${i}.`;
+        resultDiv.innerHTML = `
+            <div class="flex flex-col items-center gap-1">
+               <span class="text-2xl">📡</span>
+               <span class="font-bold">Erro de Conexão</span>
+               <span class="opacity-90">Falha na tentativa ${i}. Verifique sua internet.</span>
+             </div>`;
         resultDiv.className =
-          "mt-4 text-center text-sm p-2.5 rounded bg-red-100 text-red-800";
+          "mt-4 text-center text-sm p-4 rounded-xl bg-orange-50 text-orange-700 border border-orange-200";
         resultDiv.style.display = "block";
       }
 
@@ -416,6 +432,17 @@ if (menuToggle) {
 // Auto Mode Toggle
 const autoModeCheckbox = document.getElementById("autoMode");
 if (autoModeCheckbox) {
+  autoModeCheckbox.addEventListener("click", function (e) {
+    if (currentUserPlan !== "pro") {
+      e.preventDefault();
+      this.checked = false;
+      alert(
+        "🔒 Recurso Bloqueado\n\nO Modo Automático (Loop) é exclusivo para assinantes PRO.\nFaça o upgrade para automatizar seus envios!",
+      );
+      return;
+    }
+  });
+
   autoModeCheckbox.addEventListener("change", function () {
     const options = document.getElementById("autoOptions");
     if (this.checked) options.classList.remove("hidden");

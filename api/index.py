@@ -1187,9 +1187,23 @@ def send_message():
         try:
             error_content = json.loads(e.content)
             reason = error_content.get('error', {}).get('errors', [{}])[0].get('reason', 'Unknown')
-            msg = f"Erro API: {reason}"
+            
+            # Mapeamento de erros amigáveis para leigos
+            friendly_errors = {
+                'quotaExceeded': '😴 O limite diário do YouTube acabou. O bot precisa descansar até amanhã!',
+                'rateLimitExceeded': '🚦 Calma, piloto! Você está enviando muito rápido. O YouTube pediu uma pausa de alguns segundos.',
+                'commentsDisabled': '🔒 O dono deste vídeo desativou os comentários.',
+                'forbidden': '🚫 Permissão negada. Tente desconectar e conectar seu canal novamente no painel.',
+                'videoNotFound': '🔍 Vídeo não encontrado. Verifique se o ID está correto.',
+                'processingFailure': '⏳ O YouTube falhou temporariamente. Tente novamente em instantes.',
+                'invalidVideoId': '❌ O ID do vídeo parece inválido.',
+                'subscriberNotFound': '📝 O chat é exclusivo para inscritos (Modo Inscritos).',
+                'memberNotFound': '💎 O chat é exclusivo para membros do canal.'
+            }
+            
+            msg = friendly_errors.get(reason, f"O YouTube recusou o envio ({reason}). Tente novamente.")
         except Exception:
-            msg = f"Erro API: {e}"
+            msg = "Erro de comunicação com o YouTube. Tente novamente."
         return jsonify({"status": "error", "message": msg}), e.resp.status
     except RefreshError:
         return jsonify({"status": "error", "message": "Sessão expirada. Faça login novamente."}), 401
