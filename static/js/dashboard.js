@@ -47,6 +47,12 @@ async function checkUserStatus() {
       if (upBtn) upBtn.classList.remove("hidden");
     }
 
+    // Verifica status de reembolso
+    if (data.status === "refund_pending") {
+      const alertBox = document.getElementById("refundPendingAlert");
+      if (alertBox) alertBox.classList.remove("hidden");
+    }
+
     // Atualiza UI do YouTube
     if (data.youtube_connected) {
       document.getElementById("ytConnectionStatus").classList.add("hidden");

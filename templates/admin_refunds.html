@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Reembolsos - YouTube Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              yt: {
+                bg: "#0f0f0f",
+                card: "#1e1e1e",
+                text: "#f1f1f1",
+                red: "#cc0000",
+              },
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-yt-bg text-yt-text font-sans min-h-screen">
+    <nav class="bg-yt-card border-b border-gray-800 p-4">
+      <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <h1 class="text-xl font-bold text-red-600">Gerenciar Reembolsos</h1>
+        <div class="flex gap-4">
+          <a href="/admin" class="text-sm hover:text-white text-gray-400"
+            >Voltar ao Admin</a
+          >
+        </div>
+      </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-8">
+      <div class="bg-yt-card p-6 rounded-xl border border-gray-800">
+        <h2 class="text-lg font-bold mb-4">Solicitações Pendentes</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="text-gray-400 border-b border-gray-800 text-sm">
+                <th class="p-3">Email</th>
+                <th class="p-3">UID</th>
+                <th class="p-3">Plano Atual</th>
+                <th class="p-3">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="refundsTableBody" class="text-sm">
+              <tr>
+                <td colspan="4" class="p-3 text-center text-gray-500">
+                  Carregando...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="/static/js/firebase-config.js"></script>
+
+    <script>
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          loadRefunds(user);
+        } else {
+          window.location.href = "/login";
+        }
+      });
+
+      async function loadRefunds(user) {
+        const token = await user.getIdToken();
+        const res = await fetch("/api/admin/refunds/list", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
+        const tbody = document.getElementById("refundsTableBody");
+        tbody.innerHTML = "";
+
+        if (data.refunds && data.refunds.length > 0) {
+          data.refunds.forEach((r) => {
+            const tr = document.createElement("tr");
+            tr.className = "border-b border-gray-800 hover:bg-[#252525]";
+            tr.innerHTML = `
+                        <td class="p-3">${r.email}</td>
+                        <td class="p-3 font-mono text-xs text-gray-500">${r.uid}</td>
+                        <td class="p-3"><span class="bg-red-900 text-red-200 text-xs px-2 py-1 rounded">${r.plan}</span></td>
+                        <td class="p-3">
+                            <button onclick="processRefund('${r.uid}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold">
+                                Confirmar Estorno & Remover PRO
+                            </button>
+                        </td>
+                    `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML =
+            '<tr><td colspan="4" class="p-3 text-center text-gray-500">Nenhuma solicitação pendente.</td></tr>';
+        }
+      }
+
+      async function processRefund(uid) {
+        if (
+          !confirm(
+            "Você já devolveu o PIX no AbacatePay? Esta ação irá remover o plano PRO do usuário imediatamente.",
+          )
+        )
+          return;
+
+        const token = await auth.currentUser.getIdToken();
+        const res = await fetch("/api/admin/refunds/process", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ uid: uid }),
+        });
+        const data = await res.json();
+        alert(data.message);
+        loadRefunds(auth.currentUser);
+      }
+    </script>
+  </body>
+</html>

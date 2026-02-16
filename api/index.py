@@ -957,6 +957,9 @@ def request_refund():
         if delta.days > 7:
              return jsonify({"status": "error", "message": "O prazo de garantia de 7 dias já expirou."}), 400
 
+    # Atualiza status no banco para mostrar aviso no dashboard
+    user_ref.update({'status': 'refund_pending'})
+
     # Envia E-mail para o Admin (Você)
     user_email = data.get('email', 'Email não encontrado')
     admin_email = "lucianosantosseverino@gmail.com"
@@ -967,6 +970,55 @@ def request_refund():
     send_system_email(admin_email, subject, body)
     
     return jsonify({"status": "success", "message": "Solicitação enviada. O suporte entrará em contato em até 24h."})
+
+# --- ROTAS ADMIN REEMBOLSO ---
+@app.route('/admin/refunds')
+def admin_refunds_page():
+    return render_template('admin_refunds.html')
+
+@app.route('/api/admin/refunds/list', methods=['GET'])
+def admin_list_refunds():
+    user_token = get_user_from_token()
+    if not user_token or user_token['uid'] != ADMIN_UID:
+        return jsonify({"status": "error", "message": "Acesso negado"}), 403
+
+    # Busca usuários com status 'refund_pending'
+    users_ref = db.collection('users').where('status', '==', 'refund_pending')
+    docs = users_ref.stream()
+    
+    refund_list = []
+    for doc in docs:
+        u = doc.to_dict()
+        refund_list.append({
+            'uid': doc.id,
+            'email': u.get('email', 'N/A'),
+            'plan': u.get('plan', 'free'),
+            'updated_at': u.get('updated_at')
+        })
+
+    return jsonify({"status": "success", "refunds": refund_list})
+
+@app.route('/api/admin/refunds/process', methods=['POST'])
+def admin_process_refund():
+    user_token = get_user_from_token()
+    if not user_token or user_token['uid'] != ADMIN_UID:
+        return jsonify({"status": "error", "message": "Acesso negado"}), 403
+
+    data = request.get_json()
+    target_uid = data.get('uid')
+    
+    if not target_uid:
+        return jsonify({"status": "error", "message": "UID inválido"}), 400
+
+    # Remove plano PRO e limpa status
+    db.collection('users').document(target_uid).update({
+        'plan': 'free',
+        'credits': 10,
+        'status': firestore.DELETE_FIELD, # Remove o aviso de pendente
+        'refunded_at': datetime.datetime.now()
+    })
+
+    return jsonify({"status": "success", "message": "Plano removido com sucesso."})
 
 @app.route('/send', methods=['POST'])
 def send_message():
