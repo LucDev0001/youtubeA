@@ -244,7 +244,15 @@ document
 document
   .getElementById("video_id")
   ?.addEventListener("blur", async function () {
-    const val = this.value.trim();
+    let val = this.value.trim();
+
+    // Extrai apenas o ID se o usuário colar a URL completa
+    const match = val.match(/(?:v=|\/|youtu\.be\/)([0-9A-Za-z_-]{11})/);
+    if (match) {
+      val = match[1];
+      this.value = val; // Atualiza o campo visualmente para o usuário
+    }
+
     if (val.length < 5) return;
     try {
       const res = await fetch("/get_video_info", {

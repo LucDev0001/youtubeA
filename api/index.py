@@ -234,6 +234,12 @@ def get_video_info():
     if not video_id:
         return jsonify({"status": "error", "message": "ID inválido."}), 400
 
+    # Limpa a URL caso o usuário tenha colado o link completo
+    video_id = str(video_id).strip()
+    match = re.search(r'(?:v=|/|youtu\.be/)([0-9A-Za-z_-]{11})', video_id)
+    if match:
+        video_id = match.group(1)
+
     try:
         # --- MODO SCRAPING (Economia de Cota: 1 unidade por chamada) ---
         # Busca o HTML da página do vídeo para extrair metadados sem gastar cota
@@ -1109,6 +1115,13 @@ def send_message():
     message = data.get('message')
     msg_type = data.get('type') # 'comment' ou 'live'
 
+    # Limpa a URL caso o usuário tenha colado o link completo (Evita Erro 400 do YouTube)
+    if video_id:
+        video_id = str(video_id).strip()
+        match = re.search(r'(?:v=|/|youtu\.be/)([0-9A-Za-z_-]{11})', video_id)
+        if match:
+            video_id = match.group(1)
+
     # Log para debug na Vercel (verifique o que está chegando)
     logger.info(f"Payload recebido em /send: {data}")
 
@@ -1119,11 +1132,23 @@ def send_message():
     user_ref = db.collection('users').document(uid)
     user_doc = user_ref.get()
     user_data = user_doc.to_dict() if user_doc.exists else {}
-    
+
+    # --- Bloco de Saneamento de Dados ---
+    # Garante que usuários 'free' tenham o campo de créditos.
+    # Isso corrige contas antigas ou falhas no cadastro onde o doc do usuário
+    # não foi criado corretamente no frontend.
+    if user_data.get('plan', 'free') == 'free' and 'credits' not in user_data:
+        # Usamos set com merge=True para criar o documento se ele não existir,
+        # ou apenas atualizar o campo 'credits' se ele existir mas sem os créditos.
+        user_ref.set({'credits': 10, 'plan': 'free'}, merge=True)
+        # Recarrega os dados para usar o valor atualizado nesta mesma requisição
+        user_doc = user_ref.get()
+        user_data = user_doc.to_dict()
+
     today_str = datetime.date.today().isoformat()
     plan = user_data.get('plan', 'free')
-    credits = user_data.get('credits', 10) # Plano Free começa com 10 créditos
-    
+    credits = user_data.get('credits', 0) # Padrão seguro após o saneamento
+
     # --- LIMITE DIÁRIO (PROTEÇÃO DE COTA) ---
     last_usage_date = user_data.get('last_usage_date')
     daily_count = user_data.get('daily_count', 0)
