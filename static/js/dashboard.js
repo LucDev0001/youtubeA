@@ -154,8 +154,10 @@ document
     const interval =
       parseInt(document.getElementById("repeatInterval").value) || 60;
 
-    if (isAuto && interval < 5) {
-      alert("Por segurança, o intervalo mínimo é de 5 segundos.");
+    if (isAuto && interval < 30) {
+      alert(
+        "Para respeitar as diretrizes anti-spam da API do YouTube, o intervalo mínimo permitido é de 30 segundos.",
+      );
       return;
     }
 

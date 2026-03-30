@@ -83,6 +83,16 @@
             <span id="planStatus" class="text-sm font-bold text-green-500"
               >Carregando...</span
             >
+            <button
+              onclick="
+                document
+                  .getElementById('manualModal')
+                  .classList.remove('hidden')
+              "
+              class="hidden md:flex text-xs bg-gray-800 text-white px-3 py-1.5 rounded hover:bg-gray-700 items-center gap-1"
+            >
+              📖 Manual Completo
+            </button>
             <a
               href="/plans"
               id="upgradeBtn"
@@ -110,6 +120,34 @@
                 >
                   Conectar Agora
                 </button>
+
+                <!-- AVISO DE CANAL OBRIGATÓRIO -->
+                <div
+                  class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-800"
+                >
+                  <p class="font-bold mb-1">📺 Você tem um Canal criado?</p>
+                  <p class="mb-2">
+                    Para o bot funcionar, sua conta Google
+                    <strong>precisa ter um canal público ativo</strong>.
+                  </p>
+                  <ol class="list-decimal pl-4 space-y-1">
+                    <li>
+                      Acesse o
+                      <a
+                        href="https://youtube.com"
+                        target="_blank"
+                        class="underline font-bold"
+                        >youtube.com</a
+                      >.
+                    </li>
+                    <li>
+                      Clique na sua foto de perfil no canto superior direito.
+                    </li>
+                    <li>
+                      Selecione <strong>"Criar um canal"</strong> e confirme.
+                    </li>
+                  </ol>
+                </div>
 
                 <!-- AVISO DE CONFIANÇA / GOOGLE VERIFICATION -->
                 <div
@@ -344,8 +382,9 @@
                         <input
                           type="number"
                           id="repeatInterval"
+                          min="30"
                           value="60"
-                          class="w-full p-1 bg-white border border-gray-300 rounded text-gray-800"
+                          class="w-full p-1 bg-white border border-gray-300 rounded text-gray-800 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none"
                         />
                       </div>
                     </div>
@@ -449,6 +488,123 @@
             class="text-sm text-gray-600 hover:text-gray-900"
           >
             Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MANUAL COMPLETO MODAL -->
+    <div
+      id="manualModal"
+      class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+    >
+      <div
+        class="bg-white text-gray-900 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col"
+      >
+        <div
+          class="bg-gray-900 p-5 flex justify-between items-center rounded-t-xl"
+        >
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            📖 Manual de Uso - Abot
+          </h2>
+          <button
+            onclick="
+              document.getElementById('manualModal').classList.add('hidden')
+            "
+            class="text-gray-400 hover:text-white text-2xl"
+          >
+            &times;
+          </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-6 text-sm">
+          <!-- Seção 1 -->
+          <div>
+            <h3 class="text-lg font-bold text-red-600 mb-2 border-b pb-1">
+              1. Requisito Básico: Criando o Canal
+            </h3>
+            <p class="text-gray-700 mb-2">
+              Ter apenas um e-mail do Gmail não é suficiente para comentar ou
+              interagir. Você precisa habilitar seu canal:
+            </p>
+            <ul class="list-disc pl-5 text-gray-600 space-y-1">
+              <li>Acesse o YouTube pelo navegador e faça login.</li>
+              <li>Clique na sua foto de perfil no canto superior direito.</li>
+              <li>
+                Clique em <strong>"Criar um canal"</strong>, insira um nome e
+                salve.
+              </li>
+            </ul>
+          </div>
+
+          <!-- Seção 2 -->
+          <div>
+            <h3 class="text-lg font-bold text-red-600 mb-2 border-b pb-1">
+              2. Como utilizar o Robô
+            </h3>
+            <ol class="list-decimal pl-5 text-gray-600 space-y-2">
+              <li>
+                <strong>Conecte-se:</strong> Clique no botão "Conectar Agora" no
+                painel e dê as permissões necessárias na sua conta Google.
+              </li>
+              <li>
+                <strong>Escolha um vídeo:</strong> Clique em algum vídeo no
+                "Feed de Vídeos" ou cole o Link/ID do vídeo desejado na caixa
+                "ID do Vídeo".
+              </li>
+              <li>
+                <strong>Escreva a mensagem:</strong> Digite seu texto. Evite
+                palavras todas em maiúsculo (CAPS LOCK) e nunca envie links
+                (URLs).
+              </li>
+              <li>
+                <strong>Envie:</strong> Selecione se é um Comentário ou mensagem
+                de Live e clique em "Enviar".
+              </li>
+            </ol>
+          </div>
+
+          <!-- Seção 3 -->
+          <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+            <h3
+              class="text-lg font-bold text-red-800 mb-2 border-b border-red-200 pb-1"
+            >
+              3. Diretrizes do YouTube (Evitando Bloqueios)
+            </h3>
+            <p class="text-red-700 mb-2">
+              Para garantir a segurança da sua conta, nosso bot segue regras
+              rígidas:
+            </p>
+            <ul class="list-disc pl-5 text-red-700 space-y-1">
+              <li>
+                <strong>Intervalo Mínimo:</strong> Se usar o Modo Automático, o
+                intervalo mínimo entre mensagens é de
+                <strong>30 segundos</strong>. Intervalos menores são
+                considerados spam pelo YouTube.
+              </li>
+              <li>
+                <strong>Mensagens Repetidas:</strong> Evite mandar exatamente a
+                mesma frase dezenas de vezes. Intercale usando Templates.
+              </li>
+              <li>
+                <strong>Proibições:</strong> É terminantemente proibido enviar
+                links de afiliados, conteúdo adulto ou pedidos agressivos de
+                "Sub4Sub" (troca de inscritos).
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div
+          class="p-4 border-t border-gray-200 bg-gray-50 text-right rounded-b-xl"
+        >
+          <button
+            onclick="
+              document.getElementById('manualModal').classList.add('hidden')
+            "
+            class="px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 font-bold"
+          >
+            Fechar Manual
           </button>
         </div>
       </div>

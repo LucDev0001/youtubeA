@@ -3,164 +3,469 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dicas - YouTube Bot</title>
+    <title>Dicas - Abot Youtube</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              yt: {
+                bg: "#f3f4f6" /* Cinza claro estilo painel */,
+                card: "#ffffff",
+                text: "#1f2937",
+                red: "#cc0000",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      /* Esconde a barra de rolagem dos filtros no mobile mas permite scroll */
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
   </head>
-  <body class="bg-gray-100 text-gray-900 font-sans">
-    <div class="flex h-screen">
-      <!-- Sidebar (Simplificada) -->
+  <body class="bg-yt-bg text-yt-text font-sans overflow-hidden">
+    <div class="flex h-screen w-full">
+      <!-- Overlay para mobile quando sidebar aberta -->
+      <div
+        id="sidebarOverlay"
+        class="fixed inset-0 bg-black/50 z-40 hidden md:hidden transition-opacity"
+      ></div>
+
+      <!-- Sidebar -->
       <aside
-        class="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col"
+        id="sidebar"
+        class="w-64 bg-yt-card border-r border-gray-200 flex flex-col fixed md:relative z-50 h-full transition-transform transform -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none"
       >
         <div class="p-6 text-xl font-bold flex items-center gap-2">
-          <span class="text-red-600">▶</span> Painel
+          <span class="text-red-600">🤖</span> Abot Youtube
         </div>
         <nav class="flex-1 px-4 space-y-2">
           <a
             href="/app"
-            class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition"
+            class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition font-medium"
             >📺 Dashboard</a
           >
           <a
             href="/plans"
-            class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition"
+            class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition font-medium"
             >💎 Planos</a
           >
           <a
             href="#"
-            class="block px-4 py-3 rounded-lg bg-red-600 text-white font-medium"
+            class="block px-4 py-3 rounded-lg bg-gray-100 text-red-600 font-bold"
             >💡 Dicas</a
           >
           <a
             href="/profile"
-            class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition"
+            class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition font-medium"
             >👤 Perfil</a
           >
         </nav>
+        <div class="p-4 border-t border-gray-200">
+          <button
+            onclick="logout()"
+            class="w-full py-2 text-gray-500 hover:text-gray-900 text-sm font-medium transition"
+          >
+            Sair da Conta
+          </button>
+        </div>
       </aside>
 
-      <main class="flex-1 p-8 overflow-y-auto">
-        <div class="max-w-4xl mx-auto">
-          <h1 class="text-3xl font-bold mb-8">
-            Dicas para Maximizar seu Engajamento
-          </h1>
-
-          <div class="grid gap-6">
-            <!-- Dica 1 -->
-            <div
-              class="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
+      <!-- Main Content -->
+      <main
+        class="flex-1 flex flex-col h-screen overflow-hidden bg-yt-bg relative"
+      >
+        <!-- Topbar Mobile -->
+        <header
+          class="h-16 bg-yt-card border-b border-gray-200 flex items-center px-4 md:hidden shrink-0"
+        >
+          <button
+            id="menuToggle"
+            class="p-2 -ml-2 text-gray-600 hover:text-gray-900 rounded-full"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <div class="flex items-start gap-4">
-                <div class="text-3xl">🚀</div>
-                <div>
-                  <h3 class="text-xl font-bold mb-2">
-                    Seja um dos primeiros a comentar
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              ></path>
+            </svg>
+          </button>
+          <h1 class="ml-2 text-lg font-bold">Dicas</h1>
+        </header>
+
+        <!-- Área Rolável -->
+        <div class="flex-1 overflow-y-auto">
+          <div class="max-w-6xl mx-auto p-4 md:p-8">
+            <!-- Hero / Cabeçalho da Página -->
+            <div class="mb-8">
+              <h1
+                class="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900 mb-2"
+              >
+                Central de Dicas
+              </h1>
+              <p class="text-gray-600 text-sm md:text-base">
+                Domine o algoritmo do YouTube com nossas melhores práticas de
+                engajamento.
+              </p>
+            </div>
+
+            <!-- Barra de Pesquisa e Filtros estilo YouTube -->
+            <div class="flex flex-col gap-4 mb-8">
+              <div class="relative max-w-2xl">
+                <span
+                  class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    ></path>
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  id="searchInput"
+                  placeholder="Pesquisar dicas..."
+                  class="w-full pl-12 pr-4 py-3 bg-white rounded-full border border-gray-200 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all"
+                />
+              </div>
+
+              <!-- Chips de Filtro -->
+              <div
+                class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0"
+              >
+                <button
+                  class="filter-btn active px-4 py-1.5 bg-gray-900 text-white rounded-lg text-sm font-medium whitespace-nowrap transition-colors"
+                  data-filter="Todas"
+                >
+                  Todas
+                </button>
+                <button
+                  class="filter-btn px-4 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg text-sm font-medium whitespace-nowrap transition-colors"
+                  data-filter="Crescimento"
+                >
+                  Crescimento
+                </button>
+                <button
+                  class="filter-btn px-4 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg text-sm font-medium whitespace-nowrap transition-colors"
+                  data-filter="Lives"
+                >
+                  Lives
+                </button>
+                <button
+                  class="filter-btn px-4 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg text-sm font-medium whitespace-nowrap transition-colors"
+                  data-filter="Segurança"
+                >
+                  Segurança
+                </button>
+              </div>
+            </div>
+
+            <!-- Grid de Cards de Dicas -->
+            <div
+              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"
+              id="tipsGrid"
+            >
+              <!-- Card 1 -->
+              <article
+                class="tip-card flex flex-col bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                data-category="Crescimento"
+              >
+                <div
+                  class="h-32 bg-gradient-to-br from-blue-500 to-purple-600 p-4 flex items-end justify-between relative overflow-hidden"
+                >
+                  <span
+                    class="text-5xl absolute -right-2 -bottom-2 opacity-20 transform -rotate-12"
+                    >🚀</span
+                  >
+                  <span
+                    class="bg-black/30 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded"
+                    >Crescimento</span
+                  >
+                </div>
+                <div class="p-5 flex flex-col flex-1">
+                  <h3
+                    class="text-lg font-bold text-gray-900 mb-2 leading-tight"
+                  >
+                    Seja o Primeiro a Comentar
                   </h3>
-                  <p class="text-gray-600">
-                    O YouTube valoriza comentários feitos logo após a publicação
-                    do vídeo. Use o nosso <strong>Feed de Vídeos</strong> para
-                    identificar uploads recentes (marcados como "NOVO") e envie
-                    um comentário relevante imediatamente. Isso aumenta as
-                    chances do seu comentário ficar no topo.
+                  <p class="text-sm text-gray-600 flex-1">
+                    O algoritmo valoriza comentários feitos logo após a
+                    publicação. Use o <strong>Feed de Vídeos</strong> do painel
+                    para identificar uploads "NOVOS" e interaja imediatamente.
                   </p>
                 </div>
-              </div>
-            </div>
+              </article>
 
-            <!-- Dica 2 -->
-            <div
-              class="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
-            >
-              <div class="flex items-start gap-4">
-                <div class="text-3xl">🔴</div>
-                <div>
-                  <h3 class="text-xl font-bold mb-2">Engajamento em Lives</h3>
-                  <p class="text-gray-600">
-                    Em transmissões ao vivo, o chat passa muito rápido. Use o
-                    <strong>Modo Automático</strong> (exclusivo PRO) para enviar
-                    mensagens de apoio a cada 60 ou 120 segundos. Isso mantém
-                    seu nome visível para o criador e outros espectadores sem
-                    ser considerado spam.
+              <!-- Card 2 -->
+              <article
+                class="tip-card flex flex-col bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                data-category="Lives"
+              >
+                <div
+                  class="h-32 bg-gradient-to-br from-red-500 to-orange-500 p-4 flex items-end justify-between relative overflow-hidden"
+                >
+                  <span
+                    class="text-5xl absolute -right-2 -bottom-2 opacity-20 transform rotate-12"
+                    >🔴</span
+                  >
+                  <span
+                    class="bg-black/30 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded"
+                    >Lives</span
+                  >
+                </div>
+                <div class="p-5 flex flex-col flex-1">
+                  <h3
+                    class="text-lg font-bold text-gray-900 mb-2 leading-tight"
+                  >
+                    Engajamento em Tempo Real
+                  </h3>
+                  <p class="text-sm text-gray-600 flex-1">
+                    Em transmissões, o chat passa rápido. Use o
+                    <strong>Modo Automático</strong> para enviar mensagens de
+                    apoio a cada 60s ou 120s. Mantenha sua marca visível sem ser
+                    invasivo.
                   </p>
                 </div>
-              </div>
-            </div>
+              </article>
 
-            <!-- Dica 3 -->
-            <div
-              class="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
-            >
-              <div class="flex items-start gap-4">
-                <div class="text-3xl">✍️</div>
-                <div>
-                  <h3 class="text-xl font-bold mb-2">Evite Spam</h3>
-                  <p class="text-gray-600">
+              <!-- Card 3 -->
+              <article
+                class="tip-card flex flex-col bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                data-category="Segurança"
+              >
+                <div
+                  class="h-32 bg-gradient-to-br from-gray-700 to-gray-900 p-4 flex items-end justify-between relative overflow-hidden"
+                >
+                  <span class="text-5xl absolute -right-2 -bottom-2 opacity-20"
+                    >🛡️</span
+                  >
+                  <span
+                    class="bg-black/30 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded"
+                    >Segurança</span
+                  >
+                </div>
+                <div class="p-5 flex flex-col flex-1">
+                  <h3
+                    class="text-lg font-bold text-gray-900 mb-2 leading-tight"
+                  >
+                    Evite o "Efeito Spam"
+                  </h3>
+                  <p class="text-sm text-gray-600 flex-1">
                     Não use a mesma mensagem genérica ("Ótimo vídeo!")
-                    repetidamente em curto espaço de tempo. O YouTube pode
-                    ocultar seus comentários. Tente variar suas mensagens ou
-                    fazer perguntas específicas sobre o conteúdo do vídeo.
+                    repetidamente. O YouTube oculta robôs. Varie as mensagens
+                    usando os <strong>Templates</strong> do painel.
                   </p>
                 </div>
-              </div>
+              </article>
             </div>
 
-            <!-- Dica 4: Guia de Escrita -->
+            <!-- Seção Especial Full Width: Guia de Escrita -->
             <div
-              class="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
+              class="tip-card bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm mb-12"
+              data-category="Segurança"
             >
-              <div class="flex items-start gap-4">
-                <div class="text-3xl">📝</div>
+              <div
+                class="p-6 md:p-8 border-b border-gray-100 bg-gray-50 flex items-center gap-4"
+              >
+                <div
+                  class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm text-2xl shrink-0"
+                >
+                  📝
+                </div>
                 <div>
-                  <h3 class="text-xl font-bold mb-2">Guia de Escrita Segura</h3>
-                  <p class="text-gray-600 mb-4">
-                    Para evitar que o YouTube marque seus comentários como spam
-                    automaticamente, siga estas regras:
+                  <h2 class="text-xl md:text-2xl font-bold text-gray-900">
+                    Guia Definitivo de Escrita
+                  </h2>
+                  <p class="text-sm text-gray-600 mt-1">
+                    Como escrever para agradar o algoritmo e os criadores.
                   </p>
+                </div>
+              </div>
 
-                  <div class="grid md:grid-cols-2 gap-4 text-sm">
-                    <div
-                      class="bg-green-50 p-3 rounded border border-green-200"
+              <div
+                class="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100"
+              >
+                <!-- Permitido -->
+                <div class="p-6 md:p-8 hover:bg-green-50/30 transition-colors">
+                  <h3
+                    class="flex items-center gap-2 text-lg font-bold text-green-700 mb-6"
+                  >
+                    <span
+                      class="bg-green-100 text-green-600 w-8 h-8 rounded-full flex items-center justify-center"
+                      >✓</span
                     >
-                      <h4 class="font-bold text-green-800 mb-2">
-                        ✅ Permitido & Recomendado
-                      </h4>
-                      <ul class="list-disc pl-4 space-y-1 text-green-700">
-                        <li>Emojis (use com moderação) 🚀🔥</li>
-                        <li>Perguntas sobre o vídeo</li>
-                        <li>Elogios específicos ("Gostei da parte X")</li>
-                        <li>Português e Inglês</li>
-                        <li>Hashtags relevantes (#youtube)</li>
-                      </ul>
-                    </div>
+                    Permitido & Recomendado
+                  </h3>
+                  <ul class="space-y-4">
+                    <li class="flex gap-3 text-sm text-gray-700">
+                      <span class="text-green-500 shrink-0 mt-0.5">●</span>
+                      <span
+                        ><strong>Contexto real:</strong> Cite algo específico
+                        que aconteceu no vídeo para provar que assistiu.</span
+                      >
+                    </li>
+                    <li class="flex gap-3 text-sm text-gray-700">
+                      <span class="text-green-500 shrink-0 mt-0.5">●</span>
+                      <span
+                        ><strong>Gatilhos de interação:</strong> Termine com uma
+                        pergunta para incentivar respostas do criador.</span
+                      >
+                    </li>
+                    <li class="flex gap-3 text-sm text-gray-700">
+                      <span class="text-green-500 shrink-0 mt-0.5">●</span>
+                      <span
+                        ><strong>Emojis visuais:</strong> Use 1 ou 2 emojis (🚀,
+                        🔥) para chamar atenção no meio do texto.</span
+                      >
+                    </li>
+                  </ul>
+                </div>
 
-                    <div class="bg-red-50 p-3 rounded border border-red-200">
-                      <h4 class="font-bold text-red-800 mb-2">
-                        🚫 Evite ou Proibido
-                      </h4>
-                      <ul class="list-disc pl-4 space-y-1 text-red-700">
-                        <li>
-                          Links (http://, www...) -
-                          <strong>Bloqueio Imediato</strong>
-                        </li>
-                        <li>Palavras como "inscreva-se", "sub4sub"</li>
-                        <li>Palavrões ou discurso de ódio</li>
-                        <li>Texto todo em MAIÚSCULO</li>
-                        <li>Repetir a mesma frase 10x</li>
-                      </ul>
-                    </div>
-                  </div>
+                <!-- Proibido -->
+                <div class="p-6 md:p-8 hover:bg-red-50/30 transition-colors">
+                  <h3
+                    class="flex items-center gap-2 text-lg font-bold text-red-700 mb-6"
+                  >
+                    <span
+                      class="bg-red-100 text-red-600 w-8 h-8 rounded-full flex items-center justify-center"
+                      >✕</span
+                    >
+                    Evite ou Proibido
+                  </h3>
+                  <ul class="space-y-4">
+                    <li class="flex gap-3 text-sm text-gray-700">
+                      <span class="text-red-500 shrink-0 mt-0.5">●</span>
+                      <span
+                        ><strong>Links URL:</strong> Colocar "http://" ou "www"
+                        causa bloqueio imediato do seu comentário.</span
+                      >
+                    </li>
+                    <li class="flex gap-3 text-sm text-gray-700">
+                      <span class="text-red-500 shrink-0 mt-0.5">●</span>
+                      <span
+                        ><strong>Mendigar inscritos:</strong> Termos como
+                        "sub4sub", "retribui" ou "inscreva-se no meu
+                        canal".</span
+                      >
+                    </li>
+                    <li class="flex gap-3 text-sm text-gray-700">
+                      <span class="text-red-500 shrink-0 mt-0.5">●</span>
+                      <span
+                        ><strong>Caps Lock:</strong> TEXTOS ESCRITOS TOTALMENTE
+                        EM MAIÚSCULAS são filtrados como grito/spam.</span
+                      >
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="mt-8 text-center">
-            <a href="/app" class="text-red-600 font-bold hover:underline"
-              >Voltar para o Dashboard</a
-            >
+            <!-- Espaçamento final mobile -->
+            <div class="h-8"></div>
           </div>
         </div>
       </main>
     </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="/static/js/firebase-config.js"></script>
+
+    <script>
+      function logout() {
+        auth.signOut().then(() => {
+          window.location.href = "/";
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const searchInput = document.getElementById("searchInput");
+        const filterBtns = document.querySelectorAll(".filter-btn");
+        const cards = document.querySelectorAll(".tip-card");
+
+        // Lógica de Filtro e Pesquisa
+        function filterTips() {
+          const query = searchInput.value.toLowerCase();
+          const activeBtn = document.querySelector(".filter-btn.active");
+          const category = activeBtn ? activeBtn.dataset.filter : "Todas";
+
+          cards.forEach((card) => {
+            const text = card.innerText.toLowerCase();
+            const cardCategory = card.dataset.category;
+            const matchesSearch = text.includes(query);
+            const matchesCategory =
+              category === "Todas" || category === cardCategory;
+
+            if (matchesSearch && matchesCategory) {
+              card.style.display = "flex";
+            } else {
+              card.style.display = "none";
+            }
+          });
+        }
+
+        // Evento de digitação na busca
+        searchInput.addEventListener("input", filterTips);
+
+        // Eventos dos botões (Chips)
+        filterBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            // Reseta visual de todos os botões
+            filterBtns.forEach((b) => {
+              b.classList.remove("bg-gray-900", "text-white", "active");
+              b.classList.add("bg-gray-200", "text-gray-800");
+            });
+
+            // Aplica estilo ativo no clicado
+            btn.classList.remove("bg-gray-200", "text-gray-800");
+            btn.classList.add("bg-gray-900", "text-white", "active");
+
+            filterTips();
+          });
+        });
+
+        // Lógica do Menu Mobile (Sidebar)
+        const menuToggle = document.getElementById("menuToggle");
+        const sidebar = document.getElementById("sidebar");
+        const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+        if (menuToggle && sidebar && sidebarOverlay) {
+          menuToggle.addEventListener("click", () => {
+            sidebar.classList.toggle("-translate-x-full");
+            sidebarOverlay.classList.toggle("hidden");
+          });
+
+          sidebarOverlay.addEventListener("click", () => {
+            sidebar.classList.add("-translate-x-full");
+            sidebarOverlay.classList.add("hidden");
+          });
+        }
+      });
+    </script>
   </body>
 </html>
