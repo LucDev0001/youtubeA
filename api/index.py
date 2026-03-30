@@ -232,7 +232,7 @@ def get_video_info():
     video_id = data.get('video_id')
     
     if not video_id:
-        return jsonify({"status": "error", "message": "ID inválido."}), 400
+        return jsonify({"status": "error", "message": "ID inválido."}), 200
 
     # Limpa a URL caso o usuário tenha colado o link completo
     video_id = str(video_id).strip()
@@ -1126,7 +1126,7 @@ def send_message():
     logger.info(f"Payload recebido em /send: {data}")
 
     if not video_id or not message:
-        return jsonify({"status": "error", "message": "Faltam dados."}), 400
+        return jsonify({"status": "error", "message": "Faltam dados. Preencha todos os campos."}), 200
 
     # --- VERIFICAÇÃO DE PLANO/CRÉDITOS ---
     user_ref = db.collection('users').document(uid)
@@ -1166,25 +1166,25 @@ def send_message():
     if daily_count >= DAILY_LIMIT:
          return jsonify({
             "status": "error", 
-            "message": f"Limite diário de segurança atingido ({DAILY_LIMIT} envios). Tente novamente amanhã."
-        }), 429
+            "message": f"Limite atingido ({DAILY_LIMIT} envios). Tente amanhã."
+        }), 200
 
     if plan == 'free' and credits <= 0:
         return jsonify({
             "status": "error", 
             "message": "Limite gratuito atingido. Faça upgrade para continuar!"
-        }), 402 # Payment Required
+        }), 200
 
     # --- CONECTA AO YOUTUBE ---
     youtube = get_youtube_service(uid)
     if not youtube:
-        return jsonify({"status": "error", "message": "Canal não conectado."}), 400
+        return jsonify({"status": "error", "message": "Canal não conectado. Reconecte no painel."}), 200
 
     try:
         if msg_type == 'live':
             chat_id = get_live_chat_id(youtube, video_id)
             if not chat_id:
-                return jsonify({"status": "error", "message": "Chat ao vivo não encontrado."}), 404
+                return jsonify({"status": "error", "message": "Chat ao vivo não encontrado. Verifique o ID."}), 200
             
             youtube.liveChatMessages().insert(
                 part="snippet",
@@ -1249,18 +1249,19 @@ def send_message():
                 'processingFailure': '⏳ O YouTube falhou temporariamente. Tente novamente em instantes.',
                 'invalidVideoId': '❌ O ID do vídeo parece inválido.',
                 'subscriberNotFound': '📝 O chat é exclusivo para inscritos (Modo Inscritos).',
-                'memberNotFound': '💎 O chat é exclusivo para membros do canal.'
+                'memberNotFound': '💎 O chat é exclusivo para membros do canal.',
+                'channelNotFound': '📺 Seu e-mail não possui um canal do YouTube criado. Crie um canal na sua conta Google.'
             }
             
-            msg = friendly_errors.get(reason, f"O YouTube recusou o envio ({reason}). Tente novamente.")
+            msg = friendly_errors.get(reason, f"O YouTube recusou o envio ({reason}). Verifique o ID do vídeo.")
         except Exception:
             msg = "Erro de comunicação com o YouTube. Tente novamente."
-        return jsonify({"status": "error", "message": msg}), e.resp.status
+        return jsonify({"status": "error", "message": msg}), 200
     except RefreshError:
-        return jsonify({"status": "error", "message": "Sessão expirada. Faça login novamente."}), 401
+        return jsonify({"status": "error", "message": "Sessão expirada. Reconecte seu canal."}), 200
     except Exception as e:
         logger.exception("Erro inesperado no envio")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": f"Erro interno: {str(e)}"}), 200
 
 # Necessário para rodar localmente se quiser testar
 if __name__ == '__main__':
