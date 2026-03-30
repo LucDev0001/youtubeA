@@ -686,7 +686,6 @@ def create_checkout():
         name = user_data.get('name') or user_token.get('name') or "Cliente"
         email = user_data.get('email') or user_token.get('email')
         phone = user_data.get('phone') or "11999999999"
-        
         # Busca preço dinâmico do banco de dados
         settings_ref = db.collection('settings').document('general')
         settings_doc = settings_ref.get()
@@ -708,22 +707,20 @@ def create_checkout():
             "customer": {
                 "name": name,
                 "cellphone": phone,
-                "email": email
+                "email": email,
+                "taxId": user_data.get('cpf') or "" # Envia CPF ou string vazia
             },
             "metadata": {
                 "userId": uid
             }
         }
         
-        # Adiciona o CPF apenas se for fornecido
-        raw_cpf = user_data.get('cpf')
-        if raw_cpf and len(raw_cpf) >= 11 and raw_cpf != "12345678909":
-            payload["customer"]["taxId"] = raw_cpf
-
         response = requests.post(url, json=payload, headers=headers, timeout=30)
         
-        # Se falhar por causa de CPF inválido, tenta novamente sem enviar o CPF
-        if not response.ok and "Invalid taxId" in response.text and "taxId" in payload["customer"]:
+        # Fallback Robusto: Se a primeira tentativa falhar por qualquer problema 
+        # relacionado ao CPF/taxId (inválido, vazio, etc.), o sistema tenta
+        # novamente removendo completamente o campo, que é opcional para PIX.
+        if not response.ok and "taxid" in response.text.lower():
             del payload["customer"]["taxId"]
             response = requests.post(url, json=payload, headers=headers, timeout=30)
 
