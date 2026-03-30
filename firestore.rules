@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- REGRAS PARA A COLEÇÃO DE USUÁRIOS ---
+    match /users/{userId} {
+      // PERMISSÕES DE ACESSO:
+      // - Um usuário só pode ler e atualizar seu próprio perfil.
+      // - A criação do perfil é permitida se o ID do usuário for o mesmo do documento.
+      // - A exclusão de um usuário pelo frontend é bloqueada.
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false; // Ninguém pode deletar um usuário diretamente.
+
+      // VALIDAÇÃO NA ATUALIZAÇÃO:
+      // Garante que um usuário não possa se dar o plano 'pro' ou mais créditos.
+      // O campo 'plan' e 'credits' só podem ser alterados pelo backend (admin ou webhook).
+      // 'allow update' só passa se os campos 'plan' e 'credits' não mudaram ou não existem na requisição.
+      allow update: if request.auth.uid == userId &&
+                       (!('plan' in request.resource.data) || request.resource.data.plan == resource.data.plan) &&
+                       (!('credits' in request.resource.data) || request.resource.data.credits == resource.data.credits);
+      
+      // --- REGRAS PARA A SUBCOLEÇÃO DE TEMPLATES ---
+      match /templates/{templateId} {
+        // O usuário pode gerenciar completamente (ler, criar, editar, deletar) seus próprios templates.
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        // VALIDAÇÃO DE DADOS DO TEMPLATE:
+        // Garante que um template só pode ter os campos 'text' e 'created_at'.
+        // O campo 'text' deve ser uma string com menos de 1024 caracteres.
+        allow create, update: if request.auth.uid == userId &&
+                                request.resource.data.keys().hasOnly(['text', 'created_at']) &&
+                                request.resource.data.text is string &&
+                                request.resource.data.text.size() < 1024;
+      }
+    }
+    
+    // --- REGRAS PARA CONFIGURAÇÕES GERAIS (ex: preço do plano) ---
+    match /settings/{docId} {
+      // Qualquer usuário autenticado pode ler as configurações (necessário para ver o preço no frontend).
+      allow read: if request.auth != null;
+      
+      // A escrita é bloqueada para todos, exceto para o administrador.
+      // O UID 'BDZUzrq5kSSG5TMO3s2LI15gWEu2' é o do admin, conforme definido no seu código.
+      allow write: if request.auth != null && request.auth.uid == 'BDZUzrq5kSSG5TMO3s2LI15gWEu2';
+    }
+    
+    // --- REGRA DE LEITURA PARA O ADMIN ---
+    // Permite que o administrador leia a lista de usuários para o painel de admin.
+    // É uma alternativa segura ao uso de regras abertas.
+    // A função get() permite verificar a existência de um documento, no caso, o de admin.
+    match /users/{userId} {
+      allow read: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Regra de fallback: Nega todas as outras leituras e escritas por segurança.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

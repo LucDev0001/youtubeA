@@ -19,6 +19,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 import abacatepay
+from api.youtube_utils import get_live_chat_id
 
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
 
@@ -213,15 +214,7 @@ def logout():
     session.clear()
     return redirect(url_for('home'))
 
-def get_live_chat_id(youtube, video_id):
-    try:
-        response = youtube.videos().list(part="liveStreamingDetails", id=video_id).execute()
-        items = response.get("items", [])
-        if not items: return None
-        live_details = items[0].get("liveStreamingDetails")
-        return live_details.get("activeLiveChatId") if live_details else None
-    except HttpError:
-        return None
+
 
 @app.route('/get_video_info', methods=['POST'])
 def get_video_info():
