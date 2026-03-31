@@ -1,30 +1,21 @@
 <!doctype html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin - YouTube Bot</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <script>
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              yt: {
-                bg: "#0f0f0f",
-                card: "#1e1e1e",
-                text: "#f1f1f1",
-                red: "#cc0000",
-              },
-            },
-          },
-        },
-      };
+      // Handle theme switching
+      if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     </script>
   </head>
-  <body class="bg-yt-bg text-yt-text font-sans min-h-screen">
-    <nav class="bg-yt-card border-b border-gray-800 p-4">
+  <body class="bg-gray-100 dark:bg-[#0f0f0f] text-gray-800 dark:text-white font-sans min-h-screen">
+    <nav class="bg-white dark:bg-[#1e1e1e] border-b border-gray-200 dark:border-gray-800 p-4">
       <div class="max-w-7xl mx-auto flex justify-between items-center">
         <h1 class="text-xl font-bold text-red-600">Painel Administrativo</h1>
         <div class="flex gap-4">
@@ -34,12 +25,12 @@
           >
             Ver Reembolsos
           </a>
-          <a href="/app" class="text-sm hover:text-white text-gray-400"
+          <a href="/app" class="text-sm hover:text-gray-800 dark:hover:text-white text-gray-500 dark:text-gray-400"
             >Voltar ao App</a
           >
           <button
             onclick="logout()"
-            class="text-sm hover:text-white text-gray-400"
+            class="text-sm hover:text-gray-800 dark:hover:text-white text-gray-500 dark:text-gray-400"
           >
             Sair
           </button>
@@ -52,18 +43,18 @@
 
       <div id="adminContent" class="hidden space-y-8">
         <!-- Configurações -->
-        <div class="bg-yt-card p-6 rounded-xl border border-gray-800">
+        <div class="bg-white dark:bg-[#1e1e1e] p-6 rounded-xl border border-gray-200 dark:border-gray-800">
           <h2 class="text-lg font-bold mb-4">Configurações de Venda</h2>
           <div class="flex items-end gap-4">
             <div>
-              <label class="block text-sm text-gray-400 mb-1"
+              <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1"
                 >Preço Mensalidade (R$)</label
               >
               <input
                 type="number"
                 id="priceInput"
                 step="0.01"
-                class="bg-[#121212] border border-gray-700 rounded p-2 text-white w-32"
+                class="bg-gray-50 dark:bg-[#121212] border border-gray-300 dark:border-gray-700 rounded p-2 text-gray-800 dark:text-white w-32"
               />
             </div>
             <button
@@ -77,14 +68,14 @@
 
         <!-- Lista de Usuários -->
         <div
-          class="bg-yt-card p-6 rounded-xl border border-gray-800 overflow-x-auto"
+          class="bg-white dark:bg-[#1e1e1e] p-6 rounded-xl border border-gray-200 dark:border-gray-800 overflow-x-auto"
         >
           <h2 class="text-lg font-bold mb-4">
             Usuários Cadastrados (<span id="userCount">0</span>)
           </h2>
           <table class="w-full text-left border-collapse">
             <thead>
-              <tr class="text-gray-400 border-b border-gray-800 text-sm">
+              <tr class="text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800 text-sm">
                 <th class="p-3">UID / Email</th>
                 <th class="p-3">Plano</th>
                 <th class="p-3">Créditos</th>

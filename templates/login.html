@@ -4,19 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - YouTube Bot</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <script>
+      // Handle theme switching
+      if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
   </head>
   <body
-    class="bg-[#0f0f0f] text-white flex items-center justify-center min-h-screen"
+    class="bg-gray-100 dark:bg-[#0f0f0f] text-gray-800 dark:text-white flex items-center justify-center min-h-screen"
   >
     <div
-      class="w-full max-w-md p-8 bg-[#1e1e1e] rounded-2xl shadow-2xl border border-gray-800"
+      class="w-full max-w-md p-8 bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800"
     >
       <div class="text-center mb-8">
         <h2 class="text-3xl font-bold mb-2" id="formTitle">
           Bem-vindo de volta
         </h2>
-        <p class="text-gray-400" id="formSubtitle">
+        <p class="text-gray-600 dark:text-gray-400" id="formSubtitle">
           Acesse sua conta para continuar
         </p>
       </div>
@@ -25,35 +33,35 @@
         <!-- Campos Extras para Cadastro (Ocultos no Login) -->
         <div id="registerFields" class="hidden space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1"
+            <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1"
               >Nome Completo</label
             >
             <input
               type="text"
               id="nameInput"
-              class="w-full p-3 bg-[#121212] border border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
+              class="w-full p-3 bg-gray-50 dark:bg-[#121212] border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-gray-800 dark:text-white"
               placeholder="Seu Nome"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1"
+            <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1"
               >CPF (Apenas números)</label
             >
             <input
               type="text"
               id="cpfInput"
-              class="w-full p-3 bg-[#121212] border border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
+              class="w-full p-3 bg-gray-50 dark:bg-[#121212] border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-gray-800 dark:text-white"
               placeholder="00000000000"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1"
+            <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1"
               >Celular</label
             >
             <input
               type="text"
               id="phoneInput"
-              class="w-full p-3 bg-[#121212] border border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
+              class="w-full p-3 bg-gray-50 dark:bg-[#121212] border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-gray-800 dark:text-white"
               placeholder="11999999999"
             />
           </div>
@@ -63,7 +71,7 @@
               id="termsCheckbox"
               class="mt-1 accent-red-600"
             />
-            <label for="termsCheckbox" class="text-sm text-gray-400">
+            <label for="termsCheckbox" class="text-sm text-gray-600 dark:text-gray-400">
               Li e aceito os
               <a
                 href="/terms"
@@ -83,31 +91,31 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-400 mb-1"
+          <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1"
             >E-mail</label
           >
           <input
             type="email"
             id="emailInput"
-            class="w-full p-3 bg-[#121212] border border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
+            class="w-full p-3 bg-gray-50 dark:bg-[#121212] border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-gray-800 dark:text-white"
             placeholder="seu@email.com"
           />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-400 mb-1"
+          <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1"
             >Senha</label
           >
           <input
             type="password"
             id="passInput"
-            class="w-full p-3 bg-[#121212] border border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
+            class="w-full p-3 bg-gray-50 dark:bg-[#121212] border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:border-red-600 text-gray-800 dark:text-white"
             placeholder="••••••••"
           />
         </div>
 
         <button
           id="btnAction"
-          class="w-full py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition"
+          class="w-full py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition text-white"
         >
           Entrar
         </button>
@@ -115,28 +123,28 @@
         <div class="text-right" id="forgotPassContainer">
           <button
             id="btnForgotPassword"
-            class="text-sm text-gray-500 hover:text-white underline"
+            class="text-sm text-gray-500 hover:text-gray-800 dark:hover:text-white underline"
           >
             Esqueci minha senha
           </button>
         </div>
 
         <div class="relative flex py-2 items-center">
-          <div class="flex-grow border-t border-gray-700"></div>
+          <div class="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
           <span class="flex-shrink mx-4 text-gray-500 text-sm">Ou</span>
-          <div class="flex-grow border-t border-gray-700"></div>
+          <div class="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
         </div>
 
         <button
           id="toggleMode"
-          class="w-full py-3 bg-transparent border border-gray-600 hover:bg-gray-800 rounded-lg font-bold transition"
+          class="w-full py-3 bg-transparent border border-gray-400 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-bold transition"
         >
           Criar Nova Conta
         </button>
       </div>
 
       <p class="mt-6 text-center text-sm text-gray-500">
-        <a href="/" class="hover:text-white">← Voltar para Home</a>
+        <a href="/" class="hover:text-gray-800 dark:hover:text-white">← Voltar para Home</a>
       </p>
     </div>
 
@@ -261,3 +269,4 @@
     </script>
   </body>
 </html>
+

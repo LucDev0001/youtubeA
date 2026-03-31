@@ -4,30 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard - Abot Youtube</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              yt: {
-                bg: "#f3f4f6" /* Cinza claro */,
-                card: "#ffffff" /* Branco */,
-                text: "#1f2937" /* Cinza escuro */,
-                red: "#cc0000",
-              },
-            },
-          },
-        },
-      };
+      // Handle theme switching
+      if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     </script>
   </head>
-  <body class="bg-yt-bg text-yt-text font-sans overflow-hidden">
+  <body class="bg-gray-100 dark:bg-[#0f0f0f] text-gray-800 dark:text-white font-sans overflow-hidden">
     <div class="flex h-screen">
       <!-- Sidebar -->
       <aside
         id="sidebar"
-        class="w-64 bg-yt-card border-r border-gray-200 flex flex-col fixed md:relative z-50 h-full transition-transform transform -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none"
+        class="w-64 bg-white dark:bg-[#1e1e1e] border-r border-gray-200 dark:border-gray-800 flex flex-col fixed md:relative z-50 h-full transition-transform transform -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none"
       >
         <div class="p-6 text-xl font-bold flex items-center gap-2">
           <span class="text-red-600">🤖</span> Abot Youtube
@@ -40,24 +32,24 @@
           >
           <a
             href="/plans"
-            class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition"
+            class="block px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
             >💎 Planos</a
           >
           <a
             href="/tips"
-            class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition"
+            class="block px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
             >💡 Dicas</a
           >
           <a
             href="/profile"
-            class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition"
+            class="block px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
             >👤 Perfil</a
           >
         </nav>
-        <div class="p-4 border-t border-gray-200">
+        <div class="p-4 border-t border-gray-200 dark:border-gray-800">
           <button
             onclick="logout()"
-            class="w-full py-2 text-gray-400 hover:text-white text-sm"
+            class="w-full py-2 text-gray-500 hover:text-gray-800 dark:hover:text-white text-sm"
           >
             Sair da Conta
           </button>
@@ -66,7 +58,7 @@
 
       <!-- Main Content -->
       <main
-        class="flex-1 flex flex-col h-screen overflow-hidden relative w-full bg-yt-bg"
+        class="flex-1 flex flex-col h-screen overflow-hidden relative w-full bg-gray-100 dark:bg-[#0f0f0f]"
       >
         <!-- Overlay para mobile quando sidebar aberta -->
         <div
@@ -76,7 +68,7 @@
 
         <!-- Topbar -->
         <header
-          class="h-16 bg-yt-card border-b border-gray-200 flex items-center justify-between px-6"
+          class="h-16 bg-white dark:bg-[#1e1e1e] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6"
         >
           <button id="menuToggle" class="md:hidden text-2xl">☰</button>
           <div class="flex items-center gap-4">
@@ -107,7 +99,7 @@
           <!-- Status Cards -->
           <div class="grid md:grid-cols-2 gap-6 mb-8">
             <div
-              class="p-6 bg-yt-card rounded-xl border border-gray-200 shadow-sm"
+              class="p-6 bg-white dark:bg-[#1e1e1e] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm"
             >
               <h3 class="font-bold mb-2">Conexão YouTube</h3>
               <div id="ytConnectionStatus">
@@ -200,7 +192,7 @@
                   Feed de Vídeos
                   <button
                     onclick="loadRecentVideos()"
-                    class="text-sm p-1.5 bg-gray-800 rounded-full hover:bg-gray-700"
+                    class="text-sm p-1.5 bg-gray-200 dark:bg-gray-800 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700"
                     title="Atualizar"
                   >
                     🔄
@@ -219,11 +211,11 @@
                     type="text"
                     id="channelSearchInput"
                     placeholder="Buscar canal..."
-                    class="w-full sm:w-48 p-2 bg-gray-50 border border-gray-300 rounded text-sm text-gray-800 focus:border-red-600 outline-none"
+                    class="w-full sm:w-48 p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded text-sm text-gray-800 dark:text-white focus:border-red-600 outline-none"
                   />
                   <button
                     onclick="searchChannels()"
-                    class="p-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-700"
+                    class="p-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-700 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                   >
                     🔍
                   </button>
@@ -240,12 +232,12 @@
               <!-- Resultados da Pesquisa de Canais -->
               <div
                 id="channelSearchResults"
-                class="hidden flex-wrap gap-3 mb-4 p-3 bg-white rounded-lg border border-gray-200"
+                class="hidden flex-wrap gap-3 mb-4 p-3 bg-white dark:bg-[#1e1e1e] rounded-lg border border-gray-200 dark:border-gray-800"
               >
                 <!-- Injetado via JS -->
               </div>
 
-              <div id="listTitle" class="text-sm text-gray-400 mb-2 hidden">
+              <div id="listTitle" class="text-sm text-gray-500 dark:text-gray-400 mb-2 hidden">
                 Mostrando resultados filtrados
               </div>
               <div
@@ -258,7 +250,7 @@
                 <button
                   id="loadMoreBtn"
                   onclick="loadRecentVideos(currentNextPageToken, true)"
-                  class="hidden px-6 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300 rounded-full text-sm"
+                  class="hidden px-6 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 rounded-full text-sm"
                 >
                   Carregar Mais
                 </button>
@@ -268,7 +260,7 @@
             <!-- Right: Action Form -->
             <div class="lg:col-span-1">
               <div
-                class="bg-yt-card p-6 rounded-xl border border-gray-200 shadow-sm sticky top-6"
+                class="bg-white dark:bg-[#1e1e1e] p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm sticky top-6"
               >
                 <h3 class="font-bold mb-4">Painel de Ação</h3>
                 <form id="botForm" class="space-y-4">
@@ -280,7 +272,7 @@
                       type="text"
                       name="video_id"
                       id="video_id"
-                      class="w-full p-2 bg-gray-50 border border-gray-300 rounded text-gray-800"
+                      class="w-full p-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded text-gray-800 dark:text-white"
                       placeholder="Ex: dQw4w9WgXcQ"
                       required
                       title="Copie o ID da URL do vídeo (após v=)"
@@ -292,7 +284,7 @@
                     class="hidden bg-black p-2 rounded text-center"
                   >
                     <img id="thumb" src="" class="w-full rounded mb-2" />
-                    <p id="vidTitle" class="text-xs font-bold truncate"></p>
+                    <p id="vidTitle" class="text-xs font-bold truncate text-white"></p>
                     <p id="vidChannel" class="text-[10px] text-gray-400"></p>
                   </div>
 
@@ -302,7 +294,7 @@
                     >
                     <select
                       name="type"
-                      class="w-full p-2 bg-gray-50 border border-gray-300 rounded text-gray-800"
+                      class="w-full p-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded text-gray-800 dark:text-white"
                     >
                       <option value="live">Chat ao Vivo (Live)</option>
                       <option value="comment">Comentário</option>
@@ -318,7 +310,7 @@
                         <button
                           type="button"
                           onclick="openTemplatesModal()"
-                          class="text-[10px] bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-gray-700 font-bold flex items-center gap-1"
+                          class="text-[10px] bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-gray-700 font-bold flex items-center gap-1 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                         >
                           📂 Templates
                         </button>
@@ -327,12 +319,12 @@
                     <textarea
                       name="message"
                       rows="3"
-                      class="w-full p-2 bg-gray-50 border border-gray-300 rounded text-gray-800"
+                      class="w-full p-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded text-gray-800 dark:text-white"
                       placeholder="Escreva algo relevante sobre o vídeo..."
                       required
                     ></textarea>
                     <div class="flex justify-between items-start mt-1">
-                      <span id="charCount" class="text-[10px] text-gray-400"
+                      <span id="charCount" class="text-[10px] text-gray-500 dark:text-gray-400"
                         >0/200 caracteres recomendados</span
                       >
                       <span
@@ -357,7 +349,7 @@
                     podem ser filtrados pelo YouTube.
                   </div>
 
-                  <div class="bg-gray-50 p-3 rounded border border-gray-200">
+                  <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
                     <label
                       class="flex items-center gap-2 text-sm cursor-pointer"
                     >
@@ -374,7 +366,7 @@
                           type="number"
                           id="repeatCount"
                           value="5"
-                          class="w-full p-1 bg-white border border-gray-300 rounded text-gray-800"
+                          class="w-full p-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-800 dark:text-white"
                         />
                       </div>
                       <div>
@@ -384,7 +376,7 @@
                           id="repeatInterval"
                           min="30"
                           value="60"
-                          class="w-full p-1 bg-white border border-gray-300 rounded text-gray-800 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none"
+                          class="w-full p-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-800 dark:text-white focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none"
                         />
                       </div>
                     </div>
@@ -393,7 +385,7 @@
                   <button
                     type="submit"
                     id="btnSubmit"
-                    class="w-full py-3 bg-yt-red hover:bg-red-700 text-white font-bold rounded-lg transition"
+                    class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition"
                   >
                     Enviar
                   </button>

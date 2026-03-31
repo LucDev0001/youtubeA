@@ -60,7 +60,7 @@
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
 
     <!-- Schema.org JSON-LD (Dados Estruturados para Google) -->
     <script type="application/ld+json">
@@ -78,24 +78,36 @@
         "description": "Software de automação para criadores de conteúdo do YouTube focada em engajamento e produtividade."
       }
     </script>
+    <script>
+      // Handle theme switching
+      if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
   </head>
   <body
-    class="bg-[#050505] text-white font-sans selection:bg-red-600 selection:text-white"
+    class="bg-white text-gray-800 dark:bg-[#050505] dark:text-white font-sans selection:bg-red-600 selection:text-white"
   >
     <!-- Navbar -->
     <nav
-      class="flex justify-between items-center p-6 max-w-7xl mx-auto border-b border-gray-900/50"
+      class="flex justify-between items-center p-6 max-w-7xl mx-auto border-b border-gray-200 dark:border-gray-900/50"
     >
       <div class="flex items-center gap-2 text-2xl font-bold">
         <span class="text-red-600">🚀</span> Abot YouTube
       </div>
-      <div class="flex gap-4">
-        <a href="/login" class="px-4 py-2 text-gray-300 hover:text-white"
+      <div class="flex items-center gap-4">
+        <button id="theme-toggle" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+          <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+          <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 5.05A1 1 0 003.636 3.636l-.707.707a1 1 0 101.414 1.414l.707-.707zM3 11a1 1 0 100-2H2a1 1 0 100 2h1z"></path></svg>
+        </button>
+        <a href="/login" class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
           >Entrar</a
         >
         <a
           href="/login"
-          class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-full font-medium transition"
+          class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-full font-medium transition text-white"
           >Começar Agora</a
         >
       </div>
@@ -104,11 +116,11 @@
     <!-- Hero Section -->
     <header class="text-center py-24 px-4 relative overflow-hidden">
       <div
-        class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-red-600/20 rounded-full blur-[120px] -z-10"
+        class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-red-600/10 dark:bg-red-600/20 rounded-full blur-[120px] -z-10"
       ></div>
 
       <div
-        class="inline-block px-4 py-1.5 mb-6 text-xs font-bold tracking-widest text-red-500 uppercase bg-red-900/10 border border-red-900/20 rounded-full"
+        class="inline-block px-4 py-1.5 mb-6 text-xs font-bold tracking-widest text-red-500 uppercase bg-red-500/10 dark:bg-red-900/10 border border-red-500/20 dark:border-red-900/20 rounded-full"
       >
         Ferramenta de Produtividade
       </div>
@@ -123,7 +135,7 @@
         >
       </h1>
 
-      <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed">
+      <p class="text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed">
         A ferramenta definitiva para quem precisa interagir no YouTube. Monitore
         novos vídeos, envie mensagens automáticas em lives e ganhe visibilidade
         através do engajamento constante.
@@ -132,18 +144,18 @@
       <div class="flex justify-center gap-4">
         <a
           href="/login"
-          class="px-8 py-4 bg-red-600 text-white font-bold rounded-full hover:bg-red-700 transition text-lg shadow-lg shadow-red-900/20"
+          class="px-8 py-4 bg-red-600 text-white font-bold rounded-full hover:bg-red-700 transition text-lg shadow-lg shadow-red-600/20 dark:shadow-red-900/20"
           >Começar Agora</a
         >
         <a
           href="/plans"
-          class="px-8 py-4 border border-gray-700 rounded-full hover:bg-gray-900 transition text-lg"
+          class="px-8 py-4 border border-gray-300 dark:border-gray-700 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition text-lg"
           >Ver Planos</a
         >
       </div>
 
       <div
-        class="mt-12 flex items-center justify-center gap-8 text-gray-500 text-sm font-medium"
+        class="mt-12 flex items-center justify-center gap-8 text-gray-500 dark:text-gray-500 text-sm font-medium"
       >
         <div class="flex items-center gap-2">✅ Sem Cartão de Crédito</div>
         <div class="flex items-center gap-2">✅ Teste Grátis</div>
@@ -152,13 +164,13 @@
     </header>
 
     <!-- Features -->
-    <section class="py-24 bg-[#0a0a0a] border-y border-gray-900">
+    <section class="py-24 bg-gray-50 dark:bg-[#0a0a0a] border-y border-gray-200 dark:border-gray-900">
       <div class="max-w-7xl mx-auto px-4">
         <div class="text-center mb-16">
           <h2 class="text-3xl md:text-4xl font-bold mb-4">
             Como o Bot ajuda você?
           </h2>
-          <p class="text-gray-400">
+          <p class="text-gray-600 dark:text-gray-400">
             Automatize tarefas repetitivas e foque no que importa: criar
             conteúdo.
           </p>
@@ -166,17 +178,17 @@
 
         <div class="grid md:grid-cols-3 gap-8">
           <div
-            class="p-8 bg-[#111] rounded-2xl border border-gray-800 hover:border-red-900/50 transition group"
+            class="p-8 bg-white dark:bg-[#111] rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-red-300 dark:hover:border-red-900/50 transition group"
           >
             <div
-              class="text-4xl mb-6 bg-gray-900 w-16 h-16 flex items-center justify-center rounded-xl group-hover:scale-110 transition"
+              class="text-4xl mb-6 bg-gray-100 dark:bg-gray-900 w-16 h-16 flex items-center justify-center rounded-xl group-hover:scale-110 transition"
             >
               ⚡
             </div>
-            <h3 class="text-xl font-bold mb-3 text-white">
+            <h3 class="text-xl font-bold mb-3">
               Feed de Novos Vídeos
             </h3>
-            <p class="text-gray-400">
+            <p class="text-gray-600 dark:text-gray-400">
               Não perca tempo atualizando a página. Veja os uploads recentes das
               suas inscrições em um painel unificado e seja o primeiro a
               comentar nos canais que você acompanha.
@@ -184,17 +196,17 @@
           </div>
 
           <div
-            class="p-8 bg-[#111] rounded-2xl border border-gray-800 hover:border-red-900/50 transition group"
+            class="p-8 bg-white dark:bg-[#111] rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-red-300 dark:hover:border-red-900/50 transition group"
           >
             <div
-              class="text-4xl mb-6 bg-gray-900 w-16 h-16 flex items-center justify-center rounded-xl group-hover:scale-110 transition"
+              class="text-4xl mb-6 bg-gray-100 dark:bg-gray-900 w-16 h-16 flex items-center justify-center rounded-xl group-hover:scale-110 transition"
             >
               🤖
             </div>
-            <h3 class="text-xl font-bold mb-3 text-white">
+            <h3 class="text-xl font-bold mb-3">
               Automação de Chat em Lives
             </h3>
-            <p class="text-gray-400">
+            <p class="text-gray-600 dark:text-gray-400">
               Configure o bot para enviar mensagens periódicas em chats ao vivo.
               Ideal para divulgar sua presença ou apoiar streamers sem precisar
               digitar a mesma mensagem repetidamente.
@@ -202,15 +214,15 @@
           </div>
 
           <div
-            class="p-8 bg-[#111] rounded-2xl border border-gray-800 hover:border-red-900/50 transition group"
+            class="p-8 bg-white dark:bg-[#111] rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-red-300 dark:hover:border-red-900/50 transition group"
           >
             <div
-              class="text-4xl mb-6 bg-gray-900 w-16 h-16 flex items-center justify-center rounded-xl group-hover:scale-110 transition"
+              class="text-4xl mb-6 bg-gray-100 dark:bg-gray-900 w-16 h-16 flex items-center justify-center rounded-xl group-hover:scale-110 transition"
             >
               🎯
             </div>
-            <h3 class="text-xl font-bold mb-3 text-white">Templates Prontos</h3>
-            <p class="text-gray-400">
+            <h3 class="text-xl font-bold mb-3">Templates Prontos</h3>
+            <p class="text-gray-600 dark:text-gray-400">
               Crie modelos de respostas e comentários para usar com um clique.
               Agilize sua rotina de interação e mantenha a consistência nas suas
               mensagens.
@@ -227,7 +239,7 @@
       </h2>
       <a
         href="/login"
-        class="inline-block px-10 py-5 bg-white text-black font-bold rounded-full hover:bg-gray-200 transition text-xl shadow-[0_0_40px_rgba(255,255,255,0.3)]"
+        class="inline-block px-10 py-5 bg-gray-900 text-white dark:bg-white dark:text-black font-bold rounded-full hover:bg-gray-700 dark:hover:bg-gray-200 transition text-xl shadow-[0_0_40px_rgba(100,100,100,0.3)] dark:shadow-[0_0_40px_rgba(255,255,255,0.3)]"
         >Criar Conta Gratuita Agora</a
       >
       <p class="mt-6 text-gray-500 text-sm">
@@ -237,25 +249,67 @@
 
     <!-- Footer -->
     <footer
-      class="py-10 text-center text-gray-600 border-t border-gray-900 bg-[#050505]"
+      class="py-10 text-center text-gray-500 dark:text-gray-600 border-t border-gray-200 dark:border-gray-900 bg-white dark:bg-[#050505]"
     >
       <p>&copy; 2026 Abot YouTube Bot. Todos os direitos reservados.</p>
       <div class="mt-4 space-x-4">
-        <a href="/privacy" class="hover:text-white">Privacidade</a>
-        <a href="/terms" class="hover:text-white">Termos</a>
+        <a href="/privacy" class="hover:text-gray-900 dark:hover:text-white">Privacidade</a>
+        <a href="/terms" class="hover:text-gray-900 dark:hover:text-white">Termos</a>
         <a
           href="https://github.com/LucDev0001"
           target="_blank"
-          class="hover:text-white"
+          class="hover:text-gray-900 dark:hover:text-white"
           rel="noopener noreferrer"
           >GitHub - LucDev0001</a
         >
         <a
           href="/admin"
-          class="hover:text-white text-xs border border-gray-800 px-2 py-1 rounded"
+          class="hover:text-gray-900 dark:hover:text-white text-xs border border-gray-300 dark:border-gray-800 px-2 py-1 rounded"
           >Admin</a
         >
       </div>
     </footer>
+
+    <script>
+      const themeToggle = document.getElementById('theme-toggle');
+      const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+      const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+      // Change the icons inside the button based on previous settings
+      if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        themeToggleLightIcon.classList.remove('hidden');
+      } else {
+        themeToggleDarkIcon.classList.remove('hidden');
+      }
+
+      themeToggle.addEventListener('click', function() {
+        // toggle icons
+        themeToggleDarkIcon.classList.toggle('hidden');
+        themeToggleLightIcon.classList.toggle('hidden');
+
+        // if set via local storage previously
+        if (localStorage.getItem('theme')) {
+          if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+          }
+
+        // if NOT set via local storage previously
+        } else {
+          if (document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+          } else {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+          }
+        }
+      });
+    </script>
+
   </body>
 </html>
+

@@ -1,37 +1,27 @@
 <!doctype html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Perfil - YouTube Bot</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              yt: {
-                bg: "#0f0f0f",
-                card: "#1e1e1e",
-                text: "#f1f1f1",
-                red: "#cc0000",
-              },
-              light: { bg: "#f9f9f9", card: "#ffffff", text: "#0f0f0f" },
-            },
-          },
-        },
-      };
+      // Handle theme switching
+      if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     </script>
   </head>
   <body
-    class="bg-yt-bg text-yt-text dark:bg-light-bg dark:text-light-text font-sans"
+    class="bg-gray-100 dark:bg-[#0f0f0f] text-gray-800 dark:text-white font-sans"
   >
     <div class="flex h-screen">
       <!-- Sidebar (Simplificada para manter consistência) -->
       <aside
-        class="w-64 bg-yt-card dark:bg-light-card border-r border-gray-800 hidden md:flex flex-col"
+        class="w-64 bg-white dark:bg-[#1e1e1e] border-r border-gray-200 dark:border-gray-800 hidden md:flex flex-col"
       >
         <div class="p-6 text-xl font-bold flex items-center gap-2">
           <span class="text-red-600">▶</span> Painel
@@ -39,12 +29,12 @@
         <nav class="flex-1 px-4 space-y-2">
           <a
             href="/app"
-            class="block px-4 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition"
+            class="block px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
             >📺 Dashboard</a
           >
           <a
             href="/plans"
-            class="block px-4 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition"
+            class="block px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
             >💎 Planos</a
           >
           <a
@@ -61,7 +51,7 @@
 
           <!-- Info Card -->
           <div
-            class="bg-yt-card dark:bg-light-card p-8 rounded-2xl border border-gray-800 dark:border-gray-200 mb-8"
+            class="bg-white dark:bg-[#1e1e1e] p-8 rounded-2xl border border-gray-200 dark:border-gray-800 mb-8"
           >
             <div class="flex items-center gap-4 mb-6">
               <div
@@ -78,16 +68,16 @@
             </div>
 
             <div class="grid grid-cols-2 gap-4 mt-6">
-              <div class="p-4 bg-[#121212] rounded-lg border border-gray-700">
-                <p class="text-gray-400 text-xs uppercase font-bold">
+              <div class="p-4 bg-gray-100 dark:bg-[#121212] rounded-lg border border-gray-200 dark:border-gray-700">
+                <p class="text-gray-500 dark:text-gray-400 text-xs uppercase font-bold">
                   Plano Atual
                 </p>
-                <p id="profilePlan" class="text-2xl font-bold text-white mt-1">
+                <p id="profilePlan" class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
                   ...
                 </p>
               </div>
-              <div class="p-4 bg-[#121212] rounded-lg border border-gray-700">
-                <p class="text-gray-400 text-xs uppercase font-bold">
+              <div class="p-4 bg-gray-100 dark:bg-[#121212] rounded-lg border border-gray-200 dark:border-gray-700">
+                <p class="text-gray-500 dark:text-gray-400 text-xs uppercase font-bold">
                   Créditos Restantes
                 </p>
                 <p
@@ -102,18 +92,18 @@
             <!-- Gerenciamento de Assinatura -->
             <div
               id="subscriptionSection"
-              class="hidden mt-6 pt-6 border-t border-gray-800"
+              class="hidden mt-6 pt-6 border-t border-gray-200 dark:border-gray-800"
             >
               <h3 class="text-lg font-bold mb-4">Assinatura</h3>
-              <div class="bg-[#121212] p-4 rounded-lg border border-gray-700">
+              <div class="bg-gray-100 dark:bg-[#121212] p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                 <div
                   class="flex flex-col md:flex-row justify-between items-center gap-4"
                 >
                   <div>
-                    <p class="text-sm text-gray-400 uppercase font-bold">
+                    <p class="text-sm text-gray-500 dark:text-gray-400 uppercase font-bold">
                       Status da Assinatura
                     </p>
-                    <p class="font-bold text-white text-lg">
+                    <p class="font-bold text-gray-900 dark:text-white text-lg">
                       Vence em:
                       <span id="expirationDate" class="text-green-400"
                         >Calculando...</span
@@ -128,7 +118,7 @@
                 </div>
                 <div
                   id="refundArea"
-                  class="hidden mt-4 pt-4 border-t border-gray-800 text-center"
+                  class="hidden mt-4 pt-4 border-t border-gray-700 text-center"
                 >
                   <button
                     onclick="requestRefund()"
@@ -142,12 +132,12 @@
 
             <div
               id="upgradeSection"
-              class="hidden mt-6 pt-6 border-t border-gray-800"
+              class="hidden mt-6 pt-6 border-t border-gray-200 dark:border-gray-800"
             >
               <div
-                class="bg-red-900/10 p-4 rounded-lg border border-red-900/30 flex justify-between items-center"
+                class="bg-red-50 dark:bg-red-900/10 p-4 rounded-lg border border-red-200 dark:border-red-900/30 flex justify-between items-center"
               >
-                <span class="text-red-500 font-bold"
+                <span class="text-red-600 dark:text-red-500 font-bold"
                   >Você está no plano Gratuito</span
                 >
                 <a
@@ -164,7 +154,7 @@
                 Histórico de Envios (Últimos 7 dias)
               </h3>
               <div
-                class="bg-[#121212] p-4 rounded-lg border border-gray-700 h-64"
+                class="bg-gray-100 dark:bg-[#121212] p-4 rounded-lg border border-gray-200 dark:border-gray-700 h-64"
               >
                 <canvas id="usageChart"></canvas>
               </div>
@@ -173,13 +163,13 @@
 
           <!-- Ações da Conta -->
           <div
-            class="bg-yt-card dark:bg-light-card p-8 rounded-2xl border border-gray-800 dark:border-gray-200 mb-8"
+            class="bg-white dark:bg-[#1e1e1e] p-8 rounded-2xl border border-gray-200 dark:border-gray-800 mb-8"
           >
             <h3 class="text-xl font-bold mb-6">Configurações da Conta</h3>
 
             <div class="flex flex-col gap-4">
               <div
-                class="flex justify-between items-center border-b border-gray-800 pb-4"
+                class="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-4"
               >
                 <div>
                   <p class="font-bold">Senha</p>
@@ -189,7 +179,7 @@
                 </div>
                 <button
                   onclick="resetPassword()"
-                  class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded text-white text-sm"
+                  class="px-4 py-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 rounded text-gray-800 dark:text-white text-sm"
                 >
                   Redefinir Senha
                 </button>
@@ -204,7 +194,7 @@
                 </div>
                 <button
                   onclick="deleteAccount()"
-                  class="px-4 py-2 border border-red-900 text-red-500 hover:bg-red-900/20 rounded text-sm"
+                  class="px-4 py-2 border border-red-500 dark:border-red-900 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-sm"
                 >
                   Excluir Conta
                 </button>
@@ -213,7 +203,7 @@
           </div>
 
           <div class="text-center">
-            <a href="/app" class="text-gray-500 hover:text-white underline"
+            <a href="/app" class="text-gray-500 hover:text-gray-800 dark:hover:text-white underline"
               >Voltar para o Dashboard</a
             >
           </div>
@@ -294,6 +284,7 @@
 
       function renderChart(history) {
         const ctx = document.getElementById("usageChart").getContext("2d");
+        const isDarkMode = document.documentElement.classList.contains('dark');
 
         // Prepara dados (últimos 7 dias)
         const labels = [];
@@ -329,8 +320,15 @@
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-              y: { beginAtZero: true, grid: { color: "#333" } },
-              x: { grid: { display: false } },
+              y: { 
+                beginAtZero: true, 
+                grid: { color: isDarkMode ? "#333" : "#e5e7eb" },
+                ticks: { color: isDarkMode ? "#f1f1f1" : "#0f0f0f" }
+              },
+              x: { 
+                grid: { display: false },
+                ticks: { color: isDarkMode ? "#f1f1f1" : "#0f0f0f" }
+              },
             },
           },
         });
