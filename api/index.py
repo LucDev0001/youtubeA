@@ -671,7 +671,7 @@ def create_checkout():
     if not user_token: return jsonify({"status": "error", "message": "Não autenticado"}), 401
     
     # Pegue sua API Key no painel do AbacatePay -> Desenvolvedor
-    api_key = os.environ.get("ABACATE_API_KEY")
+    api_key = os.environ.get("ABACATE_API_KEY", "key_6h5wmdchK4nnA0K31W0FjtFB")
     if not api_key:
         return jsonify({"status": "error", "message": "Configuração de pagamento incompleta no servidor"}), 500
 
@@ -693,13 +693,14 @@ def create_checkout():
             price = settings_doc.to_dict().get('pro_price', 2990)
 
         # --- INTEGRAÇÃO DIRETA VIA ENDPOINT PIX QR CODE ---
-        url = "https://api.abacatepay.com/v1/pixQrCode/create"
+        url = "https://api.abacatepay.com/v2/transparents/create"
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
         
         payload = {
+            "method": "PIX",
             "amount": int(price), # Garante que o valor é inteiro (centavos)
             "expiresIn": 3600, # 1 hora
             "description": "Assinatura Mensal - Abot Youtube PRO",
