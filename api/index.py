@@ -701,17 +701,19 @@ def create_checkout():
         
         payload = {
             "method": "PIX",
-            "amount": int(price), # Garante que o valor é inteiro (centavos)
-            "expiresIn": 3600, # 1 hora
-            "description": "Assinatura Mensal - Abot Youtube PRO",
-            "customer": {
-                "name": name,
-                "cellphone": phone,
-                "email": email,
-                "taxId": user_data.get('cpf') or "" # Envia CPF ou string vazia
-            },
-            "metadata": {
-                "userId": uid
+            "data": {
+                "amount": int(price), # Garante que o valor é inteiro (centavos)
+                "expiresIn": 3600, # 1 hora
+                "description": "Assinatura Mensal - Abot Youtube PRO",
+                "customer": {
+                    "name": name,
+                    "cellphone": phone,
+                    "email": email,
+                    "taxId": user_data.get('cpf') or "" # Envia CPF ou string vazia
+                },
+                "metadata": {
+                    "userId": uid
+                }
             }
         }
         
