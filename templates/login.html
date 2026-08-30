@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login - YouTube Bot</title>
+    <title>Login - Abot YouTube | Automação e Crescimento</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <script>
       // Handle theme switching
@@ -13,7 +13,16 @@
         document.documentElement.classList.remove('dark');
       }
     </script>
-  </head>
+  
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PLTCMFW4R7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PLTCMFW4R7');
+    </script>
+</head>
   <body
     class="bg-gray-100 dark:bg-[#0f0f0f] text-gray-800 dark:text-white flex items-center justify-center min-h-screen"
   >
@@ -115,7 +124,7 @@
 
         <button
           id="btnAction"
-          class="w-full py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition text-white"
+          class="w-full py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 rounded-lg font-bold transition-all text-white shadow-lg shadow-red-500/30 hover:shadow-red-500/50 hover:scale-[1.02] active:scale-95"
         >
           Entrar
         </button>
@@ -137,7 +146,7 @@
 
         <button
           id="toggleMode"
-          class="w-full py-3 bg-transparent border border-gray-400 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-bold transition"
+          class="w-full py-3 bg-transparent border-2 border-gray-400 dark:border-gray-600 hover:border-gray-600 dark:hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg font-bold transition-all hover:scale-[1.02] active:scale-95 text-gray-700 dark:text-gray-200"
         >
           Criar Nova Conta
         </button>
